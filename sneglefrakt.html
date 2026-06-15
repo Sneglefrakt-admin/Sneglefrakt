@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a1a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sneglefrakt">
+<title>Sneglefrakt</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+:root {
+  --blue:#22c55e;--blue-dark:#16a34a;--blue-deep:#0a1a0a;
+  --green:#22c55e;--red:#ef4444;--yellow:#facc15;--orange:#f97316;
+  --bg:#080c14;--surface:#0d1117;--card:#111827;
+  --border:rgba(34,197,94,0.13);--muted:#6b7a8d;--text:#f0f4f8;
+  --nav-h:54px;--tab-h:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── LOGO ── */
+.ff-logo{display:inline-flex;align-items:center;gap:9px;}
+.ff-bars{display:flex;gap:3px;align-items:flex-end;}
+.ff-bar{border-radius:3px 3px 0 0;background:var(--blue);}
+.ff-wm{font-family:'Space Grotesk',sans-serif;font-weight:800;letter-spacing:-0.04em;line-height:1;}
+.ff-fleet{color:#fff;}.ff-flow{color:var(--blue);}
+
+/* ── LOGIN SCREEN ── */
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#0a1a0a 0%,#080c14 60%);}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:380px;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:4px;}
+.login-sub{font-size:0.75rem;color:var(--muted);text-align:center;margin-bottom:24px;}
+.login-error{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:var(--red);margin-bottom:14px;display:none;}
+.login-form{display:flex;flex-direction:column;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+label{font-size:0.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
+input,select,textarea{padding:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.92rem;width:100%;font-family:'Inter',sans-serif;min-height:46px;-webkit-appearance:none;}
+input:focus,select:focus{outline:2px solid var(--blue);border-color:transparent;background:rgba(255,255,255,0.08);}
+select option{background:#111827;}
+textarea{min-height:80px;resize:vertical;}
+
+/* ── APP SCREEN ── */
+#app{display:none;}
+.topbar{background:var(--blue-deep);border-bottom:1px solid var(--border);padding:0 16px;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.user-chip{font-size:0.68rem;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;}
+.user-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+.tabnav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:var(--nav-h);z-index:200;height:var(--tab-h);}
+.tabnav::-webkit-scrollbar{display:none;}
+.tabnav button{padding:0 15px;height:100%;border:none;background:none;font-size:0.74rem;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;font-family:'Inter',sans-serif;flex-shrink:0;}
+.tabnav button.active{color:var(--blue);border-bottom-color:var(--blue);}
+.content{max-width:1100px;margin:0 auto;padding:16px 14px 80px;}
+.tab{display:none;}.tab.active{display:block;}
+.kpi-grid{display:grid;gap:10px;margin-bottom:16px;grid-template-columns:repeat(2,1fr);}
+@media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.c-blue::before{background:var(--blue);}.kpi.c-green::before{background:var(--green);}
+.kpi.c-yellow::before{background:var(--yellow);}.kpi.c-orange::before{background:var(--orange);}
+.kpi-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.kpi-val{font-size:1.35rem;font-weight:900;letter-spacing:-0.04em;margin-top:4px;font-family:'Space Grotesk',sans-serif;}
+.kpi-val.blue{color:var(--blue);}.kpi-val.green{color:var(--green);}
+.kpi-val.yellow{color:var(--yellow);}.kpi-val.orange{color:var(--orange);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+.card-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.card-head h2{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:800;}
+.card-head .sub{font-size:0.67rem;color:var(--muted);margin-top:1px;}
+.card-body{padding:16px;}
+.two-col{display:grid;gap:14px;grid-template-columns:1fr;}
+@media(min-width:768px){.two-col{grid-template-columns:1fr 1fr;}}
+@media(min-width:900px){.two-col.wide{grid-template-columns:2fr 1fr;}}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+th{padding:9px 12px;text-align:left;font-size:0.59rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,0.015);}
+.hide-sm{display:none;}@media(min-width:600px){.hide-sm{display:table-cell;}}
+.hide-md{display:none;}@media(min-width:800px){.hide-md{display:table-cell;}}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:0.6rem;font-weight:800;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.badge.green{background:rgba(34,197,94,0.12);color:var(--green);}
+.badge.blue{background:rgba(34,197,94,0.12);color:var(--blue);}
+.badge.yellow{background:rgba(250,204,21,0.12);color:var(--yellow);}
+.badge.orange{background:rgba(249,115,22,0.12);color:var(--orange);}
+.pristype{display:inline-block;font-size:0.59rem;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:0.04em;}
+.pristype.tur{background:rgba(34,197,94,0.15);color:var(--blue);}
+.pristype.time{background:rgba(250,204,21,0.15);color:var(--yellow);}
+.pristype.fast{background:rgba(34,197,94,0.15);color:var(--green);}
+.btn{padding:9px 16px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;transition:opacity 0.15s;white-space:nowrap;}
+.btn:hover{opacity:0.85;}.btn:active{opacity:0.7;transform:scale(0.98);}
+.btn-accent{background:var(--blue);color:white;}
+.btn-ghost{background:rgba(255,255,255,0.06);color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:rgba(239,68,68,0.12);color:var(--red);}
+.btn-export{background:var(--blue-deep);border:1px solid var(--border);color:white;}
+.btn-sm{padding:7px 12px;font-size:0.7rem;}.btn-xs{padding:5px 9px;font-size:0.65rem;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.btn-full{width:100%;justify-content:center;}
+@media(min-width:500px){.btn-full{width:auto;}}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+@media(min-width:420px){.form-grid{grid-template-columns:1fr 1fr;}}
+.form-group.full{grid-column:1/-1;}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.pm-btn{border:2px solid var(--border);background:rgba(255,255,255,0.03);border-radius:10px;padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.pm-btn:active{transform:scale(0.97);}
+.pm-icon{font-size:1.3rem;margin-bottom:5px;}
+.pm-name{font-size:0.72rem;font-weight:800;color:var(--text);font-family:'Space Grotesk',sans-serif;}
+.pm-desc{font-size:0.58rem;color:var(--muted);margin-top:2px;}
+.pm-btn.active.tur{border-color:var(--blue);background:rgba(34,197,94,0.1);}
+.pm-btn.active.time{border-color:var(--yellow);background:rgba(250,204,21,0.08);}
+.pm-btn.active.fast{border-color:var(--green);background:rgba(34,197,94,0.08);}
+.pris-section{display:none;}.pris-section.show{display:grid;grid-template-columns:1fr;gap:10px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:500;align-items:flex-end;justify-content:center;padding:0;}
+@media(min-width:600px){.modal-overlay{align-items:center;padding:16px;}}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+@media(min-width:600px){.modal{border-radius:16px;}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-drag{width:40px;height:4px;background:rgba(255,255,255,0.15);border-radius:99px;margin:10px auto 0;}
+@media(min-width:600px){.modal-drag{display:none;}}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.modal-head h3{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:800;}
+.modal-close{background:rgba(255,255,255,0.08);border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+.modal-body{padding:18px;}
+.list-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.list-item-info{flex:1;min-width:0;}
+.li-name{font-weight:700;font-size:0.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-detail{font-size:0.68rem;color:var(--muted);margin-top:2px;}
+.avatar{border-radius:8px;background:var(--blue-dark);color:white;font-weight:900;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.plan-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.plan-uke-nav{display:flex;gap:6px;align-items:center;}
+.plan-uke-label{font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:800;min-width:80px;text-align:center;}
+.plan-grid-desktop{display:none;}
+@media(min-width:700px){.plan-grid-desktop{display:block;}}
+.plan-corner{background:var(--surface);}
+.plan-day-hdr{background:var(--surface);padding:9px 4px;text-align:center;}
+.plan-day-hdr .dag{font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);}
+.plan-day-hdr .dato{font-size:0.82rem;font-weight:900;font-family:'Space Grotesk',sans-serif;margin-top:2px;}
+.plan-day-hdr.today{background:rgba(34,197,94,0.15);}
+.plan-day-hdr.today .dato{color:var(--blue);}
+.plan-sjafor-col{background:var(--card);padding:8px 8px;border-right:1px solid var(--border);}
+.plan-sjafor-col .sn{font-size:0.68rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-sjafor-col .sb{font-size:0.55rem;color:var(--muted);margin-top:1px;}
+.plan-cell{background:var(--card);padding:3px;min-height:64px;cursor:pointer;transition:background 0.1s;}
+.plan-cell:hover{background:rgba(34,197,94,0.07);}
+.plan-cell.today-col{background:rgba(59,130,246,0.03);}
+.plan-evt{border-radius:4px;padding:3px 5px;margin-bottom:2px;font-size:0.58rem;line-height:1.4;}
+.plan-evt.tur{background:rgba(29,78,216,0.6);border-left:2px solid var(--blue);color:white;}
+.plan-evt.oppdrag{background:rgba(249,115,22,0.2);border-left:2px solid var(--orange);color:#fb923c;}
+.plan-evt.ledig{background:rgba(34,197,94,0.1);border-left:2px solid var(--green);color:var(--green);}
+.plan-evt .pe-t{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-evt .pe-s{opacity:0.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-add-cell{width:100%;background:none;border:1px dashed rgba(255,255,255,0.07);border-radius:3px;color:#253545;font-size:0.55rem;padding:2px 4px;cursor:pointer;margin-top:2px;}
+.plan-add-cell:hover{border-color:var(--blue);color:var(--blue);}
+.plan-mobile{display:block;}
+@media(min-width:700px){.plan-mobile{display:none;}}
+.plan-dag-kort{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.plan-dag-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.plan-dag-header.today{background:rgba(34,197,94,0.1);}
+.plan-dag-tittel{font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:800;}
+.plan-dag-tittel.today{color:var(--blue);}
+.plan-dag-body{padding:10px 14px;}
+.plan-sjafor-rad{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+.plan-sjafor-rad:last-child{border-bottom:none;}
+.plan-sjafor-info{width:80px;flex-shrink:0;}
+.plan-sjafor-navn{font-size:0.72rem;font-weight:700;}
+.plan-sjafor-bil{font-size:0.6rem;color:var(--muted);}
+.plan-events-col{flex:1;}
+.plan-evt-mob{border-radius:6px;padding:5px 8px;margin-bottom:4px;font-size:0.72rem;}
+.plan-evt-mob.tur{background:rgba(29,78,216,0.3);border-left:3px solid var(--blue);color:var(--text);}
+.plan-evt-mob.oppdrag{background:rgba(249,115,22,0.15);border-left:3px solid var(--orange);color:#fb923c;}
+.plan-evt-mob.ledig{background:rgba(34,197,94,0.08);border-left:3px solid var(--green);color:var(--green);}
+.plan-legg-til{font-size:0.7rem;color:#253545;background:none;border:1px dashed rgba(255,255,255,0.08);border-radius:6px;padding:5px 10px;cursor:pointer;width:100%;text-align:left;margin-top:2px;}
+.plan-legg-til:hover{border-color:var(--blue);color:var(--blue);}
+.ledig-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.ledig-row:last-child{border-bottom:none;}
+.ledig-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ledig-dot.ledig{background:var(--green);}.ledig-dot.opptatt{background:var(--red);}.ledig-dot.delvis{background:var(--yellow);}
+.faktura{background:white;color:#111;border-radius:12px;padding:24px;font-size:0.8rem;line-height:1.6;}
+.faktura-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #16a34a;flex-wrap:wrap;gap:10px;}
+.fak-logo .fleet{color:#111;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1rem;letter-spacing:-0.04em;}
+.fak-logo .flow{color:#16a34a;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1rem;letter-spacing:-0.04em;}
+.fak-logo .tag{font-size:0.58rem;color:#6b7a8d;text-transform:uppercase;letter-spacing:0.1em;}
+.faktura-nr .nr{font-size:1rem;font-weight:800;color:#16a34a;font-family:'Space Grotesk',sans-serif;}
+.faktura-nr .dato{font-size:0.7rem;color:#6b7a8d;}
+.faktura-parter{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.faktura-parter h4{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6b7a8d;margin-bottom:3px;}
+.faktura-parter p{font-size:0.75rem;color:#374151;line-height:1.5;}
+.faktura table{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.faktura th{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:white;background:#16a34a;padding:7px 9px;text-align:left;}
+.faktura td{padding:7px 9px;border-bottom:1px solid #e5e7eb;font-size:0.75rem;color:#374151;}
+.fak-sum-row{display:flex;justify-content:space-between;padding:3px 0;font-size:0.75rem;}
+.fak-sum-row.total{font-weight:800;font-size:0.88rem;border-top:1px solid #e5e7eb;margin-top:6px;padding-top:8px;}
+.fak-footer{margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:0.62rem;color:#9ca3af;text-align:center;}
+.info-box{background:rgba(34,197,94,0.07);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:10px 14px;font-size:0.76rem;color:#8ab4f8;line-height:1.6;margin-bottom:14px;}
+.info-box strong{color:white;}
+.empty{text-align:center;padding:28px 16px;color:var(--muted);font-size:0.82rem;}
+.empty .ei{font-size:2rem;margin-bottom:8px;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(6px);background:var(--blue-deep);border:1px solid var(--border);color:white;padding:11px 20px;border-radius:12px;font-size:0.8rem;font-weight:700;z-index:999;opacity:0;transition:all 0.2s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.pris-preview-boks{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:0.82rem;line-height:1.7;margin-bottom:10px;display:none;}
+.pris-preview-sum{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.pris-preview-kr{font-size:1.1rem;font-weight:900;color:var(--green);font-family:'Space Grotesk',sans-serif;}
+.kr-green{color:var(--green);font-weight:800;font-family:'Space Grotesk',sans-serif;}
+
+/* ADMIN */
+.admin-section{background:rgba(250,204,21,0.05);border:1px solid rgba(250,204,21,0.2);border-radius:12px;padding:16px;margin-bottom:14px;}
+.admin-section h3{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:800;color:var(--yellow);margin-bottom:12px;}
+.user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;gap:8px;}
+.user-row-info{flex:1;min-width:0;}
+.user-row-name{font-size:0.82rem;font-weight:700;}
+.user-row-detail{font-size:0.67rem;color:var(--muted);margin-top:1px;}
+
+  /* FAKTURA ADMIN */
+  .fak-admin-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+  @media(min-width:600px){.fak-admin-grid{grid-template-columns:1fr 1fr;}}
+  @media(min-width:900px){.fak-admin-grid{grid-template-columns:repeat(3,1fr);}}
+  .fak-kort{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
+  .fak-kort::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .fak-kort.ubetalt::before{background:var(--yellow);}
+  .fak-kort.betalt::before{background:var(--green);}
+  .fak-kort.forfalt::before{background:var(--red);}
+  .fak-kort.ikke-sendt::before{background:var(--muted);}
+  .fak-kunde-navn{font-weight:800;font-size:0.88rem;margin-bottom:4px;}
+  .fak-belop{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:900;margin:8px 0;}
+  .fak-belop.green{color:var(--green);}
+  .fak-belop.yellow{color:var(--yellow);}
+  .fak-belop.red{color:var(--red);}
+  .fak-belop.muted{color:var(--muted);}
+  .fak-meta{font-size:0.68rem;color:var(--muted);line-height:1.7;}
+  .status-pill{display:inline-flex;align-items:center;gap:4px;font-size:0.6rem;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  .status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .status-pill.ikke-sendt{background:rgba(107,122,141,0.15);color:var(--muted);}
+  .status-pill.sendt{background:rgba(250,204,21,0.15);color:var(--yellow);}
+  .status-pill.betalt{background:rgba(34,197,94,0.15);color:var(--green);}
+  .status-pill.forfalt{background:rgba(239,68,68,0.15);color:var(--red);}
+  .fak-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.82rem;}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-label{color:var(--muted);}
+  .stat-val{font-weight:800;font-family:'Space Grotesk',sans-serif;}
+
+
+  /* E-POST FAKTURA */
+  .epost-kort{background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:13px 14px;margin-top:10px;}
+  .epost-kort-tittel{font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .epost-kort p{font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+  .epost-input-row{display:flex;gap:8px;}
+  .epost-input-row input{flex:1;padding:9px 11px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;}
+  .epost-input-row input:focus{outline:2px solid var(--blue);border-color:transparent;}
+  .epost-status{font-size:0.7rem;margin-top:6px;padding:6px 10px;border-radius:6px;display:none;}
+  .epost-status.sendt{background:rgba(34,197,94,0.12);color:var(--green);}
+  .epost-status.feil{background:rgba(239,68,68,0.12);color:var(--red);}
+  .epost-status.sender{background:rgba(34,197,94,0.12);color:var(--blue);}
+  /* FAKTURA INNBOKS & PAUSE */
+  .faktura-inbox{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:16px;margin-bottom:16px;}
+  .faktura-inbox-title{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .faktura-inbox-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .faktura-inbox-item.ny{border-color:var(--blue);background:rgba(34,197,94,0.06);}
+  .fi-info .fi-tittel{font-size:0.84rem;font-weight:700;}
+  .fi-info .fi-sub{font-size:0.68rem;color:var(--muted);margin-top:2px;}
+  .fi-belop{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:900;color:var(--yellow);}
+
+  /* PAUSE BANNER */
+  .pause-banner{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .pause-box{background:var(--card);border:2px solid var(--red);border-radius:20px;padding:32px 28px;max-width:400px;width:100%;text-align:center;}
+  .pause-icon{font-size:3rem;margin-bottom:16px;}
+  .pause-tittel{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:900;color:var(--red);margin-bottom:10px;}
+  .pause-tekst{font-size:0.82rem;color:var(--muted);line-height:1.7;margin-bottom:20px;}
+  .pause-belop{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:900;color:var(--yellow);margin:12px 0;}
+
+  /* ADMIN BRUKER STATUS */
+  .bruker-status{display:inline-flex;align-items:center;gap:4px;font-size:0.6rem;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;margin-left:6px;}
+  .bruker-status.aktiv{background:rgba(34,197,94,0.12);color:var(--green);}
+  .bruker-status.pause{background:rgba(239,68,68,0.12);color:var(--red);}
+  .bruker-status.advarsel{background:rgba(250,204,21,0.12);color:var(--yellow);}
+
+  /* ENDRE PASSORD & SJÅFØR-BRUKERE */
+  .settings-section { background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .settings-section h3 { font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .sub-user-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; gap:8px; }
+  .sub-user-info .sun { font-size:0.82rem; font-weight:700; }
+  .sub-user-info .sur { font-size:0.67rem; color:var(--muted); margin-top:1px; }
+  .rolle-badge { font-size:0.58rem; font-weight:800; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em; }
+  .rolle-badge.leder { background:rgba(34,197,94,0.15); color:var(--blue); }
+  .rolle-badge.sjafor { background:rgba(34,197,94,0.12); color:var(--green); }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ff-logo" style="justify-content:center;">
+        <svg width="52" height="52" viewBox="0 0 48 48" fill="none">
+          <rect x="1" y="1" width="46" height="46" rx="12" fill="#0a1a0a"/>
+          <circle cx="28" cy="22" r="14" fill="none" stroke="#22c55e" stroke-width="2"/>
+          <circle cx="28" cy="22" r="9" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.55"/>
+          <circle cx="28" cy="22" r="4" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="28" cy="22" r="2" fill="#22c55e"/>
+          <path d="M14 28 Q10 32 8 35 Q14 39 22 37" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <line x1="16" y1="11" x2="14" y2="6" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="21" y1="10" x2="21" y2="5" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="14" cy="6" r="1.5" fill="#22c55e"/>
+          <circle cx="21" cy="5" r="1.5" fill="#22c55e"/>
+        </svg>
+        <div class="ff-wm" style="font-size:1.4rem;"><span class="ff-fleet">Snegle</span><span class="ff-flow">frakt</span></div>
+      </div>
+    </div>
+    <div class="login-sub" style="color:#22c55e;font-size:0.72rem;font-weight:600;margin-top:-8px;margin-bottom:8px;">Admin i fart — vi lover</div>
+    <div class="divider"></div>
+    <div class="login-title" style="margin-top:16px;">Logg inn</div>
+    <div class="login-error" id="login-error">Feil brukernavn eller passord</div>
+    <div class="login-form">
+      <div class="form-group">
+        <label>Brukernavn</label>
+        <input type="text" id="l-user" placeholder="brukernavn" autocomplete="username" autocapitalize="none">
+      </div>
+      <div class="form-group">
+        <label>Passord</label>
+        <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-accent" style="width:100%;justify-content:center;margin-top:4px;padding:13px;" onclick="loggInn()">Logg inn →</button>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--muted);text-align:center;">
+      Sneglefrakt · Transportadmin<br>Kontakt support: hei@sneglefrakt.no
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <div class="topbar">
+    <div class="ff-logo">
+      <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+        <rect x="1" y="1" width="46" height="46" rx="12" fill="#0a1a0a"/>
+        <circle cx="28" cy="22" r="14" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <circle cx="28" cy="22" r="9" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.55"/>
+        <circle cx="28" cy="22" r="4" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.3"/>
+        <circle cx="28" cy="22" r="2" fill="#22c55e"/>
+        <path d="M14 28 Q10 32 8 35 Q14 39 22 37" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <line x1="16" y1="11" x2="14" y2="6" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="21" y1="10" x2="21" y2="5" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="14" cy="6" r="1.5" fill="#22c55e"/>
+        <circle cx="21" cy="5" r="1.5" fill="#22c55e"/>
+      </svg>
+      <div class="ff-wm" style="font-size:1rem;"><span class="ff-fleet">Snegle</span><span class="ff-flow">frakt</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip"><div class="dot"></div><span id="user-display"></span></div>
+      <button class="btn btn-ghost btn-sm" onclick="loggUt()">Logg ut</button>
+      <button class="btn btn-accent btn-sm" onclick="openModal('tur-modal')">+ Tur</button>
+    </div>
+  </div>
+
+  <nav class="tabnav">
+    <button class="active" onclick="showTab('oversikt',this)">📊 Oversikt</button>
+    <button onclick="showTab('kjorebok',this)">🚛 Kjørebok</button>
+    <button onclick="showTab('planlegger',this)">📅 Planlegger</button>
+    <button onclick="showTab('kunder',this)">🏢 Kunder</button>
+    <button onclick="showTab('sjaforer',this)">👤 Sjåfører</button>
+    <button onclick="showTab('faktura',this)">🧾 Faktura</button>
+    <button id="admin-tab-btn" onclick="showTab('admin',this)" style="display:none;">⚙️ Admin</button>
+    <button onclick="showTab('innstillinger',this)">⚙️ Innstillinger</button>
+    <button id="fak-admin-tab-btn" onclick="showTab('fakadmin',this)" style="display:none;">💳 Fakturakontroll</button>
+  </nav>
+
+  <div class="content">
+
+    <!-- OVERSIKT -->
+    <div class="tab active" id="tab-oversikt">
+      <div id="faktura-inbox-wrap" style="display:none;">
+        <div class="faktura-inbox">
+          <div class="faktura-inbox-title">📬 Fakturaer fra Sneglefrakt <span id="ny-fak-badge" class="badge blue" style="display:none;"></span></div>
+          <div id="faktura-inbox-liste"></div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi c-blue"><div class="kpi-lbl">Turer i dag</div><div class="kpi-val blue" id="k-idag">0</div></div>
+        <div class="kpi c-green"><div class="kpi-lbl">Inntekt denne mnd</div><div class="kpi-val green" id="k-inntekt">0 kr</div></div>
+        <div class="kpi c-yellow"><div class="kpi-lbl">Km denne mnd</div><div class="kpi-val yellow" id="k-km">0</div></div>
+        <div class="kpi c-orange"><div class="kpi-lbl">Aktive kunder</div><div class="kpi-val orange" id="k-kunder">0</div></div>
+      </div>
+      <div class="two-col wide">
+        <div class="card">
+          <div class="card-head"><div><h2>🚛 Siste turer</h2></div><button class="btn btn-accent btn-sm" onclick="openModal('tur-modal')">+ Ny tur</button></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Dato</th><th>Sjåfør</th><th class="hide-sm">Fra → Til</th><th class="hide-sm">Km</th><th>Type</th><th>Beløp</th></tr></thead><tbody id="ov-tbody"></tbody></table><div class="empty" id="ov-empty"><div class="ei">🚛</div>Ingen turer ennå.</div></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-head"><h2>💰 Inntekt per kunde</h2></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Kunde</th><th>Type</th><th>Beløp</th></tr></thead><tbody id="ink-tbody"></tbody></table><div class="empty" id="ink-empty"><div class="ei">💰</div>Legg til kunder og turer.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>👤 Sjåfører nå</h2></div>
+            <div class="card-body" id="ov-sjaforer"><div class="empty"><div class="ei">👤</div>Legg til sjåfører.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KJØREBOK -->
+    <div class="tab" id="tab-kjorebok">
+      <div class="card">
+        <div class="card-head"><div><h2>🚛 Kjørebok</h2><div class="sub">Alle turer med inntekt</div></div>
+          <div class="btn-row" style="margin:0;"><button class="btn btn-export btn-sm" onclick="exportExcel()">📥 Excel</button><button class="btn btn-accent btn-sm" onclick="openModal('tur-modal')">+ Tur</button></div>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>Dato</th><th>Sjåfør</th><th class="hide-sm">Kunde</th><th class="hide-sm">Fra → Til</th><th class="hide-md">Km</th><th class="hide-md">Timer</th><th>Type</th><th>Beløp</th><th></th></tr></thead><tbody id="kb-tbody"></tbody></table><div class="empty" id="kb-empty"><div class="ei">🚛</div>Ingen turer registrert.</div></div>
+      </div>
+    </div>
+
+    <!-- PLANLEGGER -->
+    <div class="tab" id="tab-planlegger">
+      <div class="plan-toolbar">
+        <div><div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:800;" id="plan-tittel">Uke</div><div style="font-size:0.68rem;color:var(--muted);">Trykk en celle for å legge til oppdrag</div></div>
+        <div class="plan-uke-nav">
+          <button class="btn btn-ghost btn-sm" onclick="forrigeUke()">←</button>
+          <div class="plan-uke-label" id="plan-uke-nr"></div>
+          <button class="btn btn-ghost btn-sm" onclick="nesteUke()">→</button>
+          <button class="btn btn-ghost btn-sm" onclick="dennUken()">I dag</button>
+          <button class="btn btn-accent btn-sm" onclick="openPlanModal('','')">+ Oppdrag</button>
+        </div>
+      </div>
+      <div class="plan-grid-desktop"><div class="card" style="overflow:auto;"><div id="desk-plan"></div></div></div>
+      <div class="plan-mobile" id="mob-plan"></div>
+      <div class="two-col">
+        <div class="card"><div class="card-head"><h2>👤 Tilgjengelighet</h2></div><div class="card-body" id="ledig-liste"></div></div>
+        <div class="card"><div class="card-head"><h2>📋 Planlagte oppdrag</h2></div><div style="padding:0;"><div class="empty" id="opp-empty"><div class="ei">📋</div>Ingen planlagte oppdrag.</div><div id="opp-liste"></div></div></div>
+      </div>
+    </div>
+
+    <!-- KUNDER -->
+    <div class="tab" id="tab-kunder">
+      <div class="info-box">💡 <strong>Prismodell settes per kunde.</strong> Beløp beregnes automatisk ved turregistrering.</div>
+      <div class="card">
+        <div class="card-head"><div><h2>🏢 Kunder & prismodeller</h2></div><button class="btn btn-accent btn-sm" onclick="openModal('kunde-modal')">+ Kunde</button></div>
+        <div class="card-body"><div id="kunde-liste"></div><div class="empty" id="kunde-empty"><div class="ei">🏢</div>Ingen kunder ennå.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>📖 Prismodell-guide</h2></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:10px;"><span class="pristype tur" style="min-width:58px;text-align:center;">Turpris</span><div><div style="font-weight:700;font-size:0.82rem;">Fast beløp per tur</div><div style="font-size:0.73rem;color:var(--muted);margin-top:2px;">Eks: 850 kr per levering — uansett km og tid.</div></div></div>
+          <div style="display:flex;gap:10px;"><span class="pristype time" style="min-width:58px;text-align:center;">Timepris</span><div><div style="font-weight:700;font-size:0.82rem;">Timer × timepris</div><div style="font-size:0.73rem;color:var(--muted);margin-top:2px;">Eks: 650 kr/t × 3 timer = 1 950 kr.</div></div></div>
+          <div style="display:flex;gap:10px;"><span class="pristype fast" style="min-width:58px;text-align:center;">Fastpris</span><div><div style="font-weight:700;font-size:0.82rem;">Fast månedspris</div><div style="font-size:0.73rem;color:var(--muted);margin-top:2px;">Eks: 15 000 kr/mnd for fast rute.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SJÅFØRER -->
+    <div class="tab" id="tab-sjaforer">
+      <div class="card">
+        <div class="card-head"><div><h2>👤 Sjåfører</h2></div><button class="btn btn-accent btn-sm" onclick="openModal('sjafor-modal')">+ Sjåfør</button></div>
+        <div class="card-body"><div id="sjafor-liste"></div><div class="empty" id="sjafor-empty"><div class="ei">👤</div>Ingen sjåfører ennå.</div></div>
+      </div>
+    </div>
+
+    <!-- FAKTURA -->
+    <div class="tab" id="tab-faktura">
+      <div class="card">
+        <div class="card-head"><h2>🧾 Fakturagrunnlag</h2></div>
+        <div class="card-body">
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label>Kunde</label><select id="fak-kunde" onchange="renderFaktura()"><option value="">Velg kunde</option></select></div>
+            <div class="form-group"><label>Måned</label><input type="month" id="fak-mnd" onchange="renderFaktura()"></div>
+          </div>
+          <div id="fak-innhold"><div class="empty"><div class="ei">🧾</div>Velg kunde og måned.</div></div>
+          <div class="btn-row"><button class="btn btn-export btn-full" onclick="exportFaktura()">📥 Last ned Excel</button><button class="btn btn-ghost btn-full" onclick="window.print()">🖨️ Skriv ut</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN (kun synlig for admin) -->
+    <div class="tab" id="tab-admin">
+      <div class="admin-section">
+        <h3>⚙️ Brukeradministrasjon</h3>
+        <div class="info-box" style="margin-bottom:12px;">Dette er kun synlig for deg som administrator. Her legger du til nye kunder med brukernavn og passord.</div>
+        <div id="bruker-liste"></div>
+        <button class="btn btn-accent btn-sm" style="margin-top:10px;" onclick="openModal('bruker-modal')">+ Legg til kunde/bruker</button>
+      </div>
+      <div class="admin-section">
+        <h3>🔑 Endre adminpassord</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Nytt passord</label><input type="password" id="ny-adminpass" placeholder="••••••••"></div>
+          <div class="form-group"><label>Bekreft</label><input type="password" id="ny-adminpass2" placeholder="••••••••"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="endreAdminPass()">Lagre nytt passord</button>
+      </div>
+    </div>
+
+
+    <!-- FAKTURA ADMIN -->
+    <div class="tab" id="tab-fakadmin">
+      <div class="two-col" style="margin-bottom:14px;">
+        <div class="card">
+          <div class="card-head"><h2>📊 Denne måneden</h2><div class="sub" id="fak-admin-mnd-label"></div></div>
+          <div class="card-body">
+            <div id="fak-admin-stats"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>🗓️ Velg periode</h2></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Måned</label>
+              <input type="month" id="fak-admin-mnd" onchange="renderFakAdmin()">
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn btn-accent btn-sm" onclick="merkAlleSendt()">📤 Merk alle som sendt</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>💳 Fakturastatus per kunde</h2><div class="sub">Klikk for å oppdatere status</div></div>
+        <div class="card-body">
+          <div class="fak-admin-grid" id="fak-admin-kunder"></div>
+          <div class="empty" id="fak-admin-empty"><div class="ei">💳</div>Ingen kunder registrert ennå.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>📋 Historikk</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Kunde</th><th>Periode</th><th>Beløp</th><th>Status</th><th>Sendt</th><th>Betalt</th><th></th></tr></thead>
+            <tbody id="fak-hist-tbody"></tbody>
+          </table>
+          <div class="empty" id="fak-hist-empty"><div class="ei">📋</div>Ingen historikk ennå.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INNSTILLINGER (alle brukere) -->
+    <div class="tab" id="tab-innstillinger">
+
+      <!-- Endre passord -->
+      <div class="card">
+        <div class="card-head"><h2>🔑 Endre passord</h2></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Nåværende passord</label><input type="password" id="ep-gammel" placeholder="••••••••"></div>
+            <div class="form-group"><label>Nytt passord</label><input type="password" id="ep-ny" placeholder="••••••••"></div>
+            <div class="form-group full"><label>Bekreft nytt passord</label><input type="password" id="ep-bekreft" placeholder="••••••••"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-accent btn-full" onclick="endreEgetPassord()">Lagre nytt passord</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Underbrukere (kun for kunde-rolle) -->
+      <div id="sub-users-wrap" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <div><h2>👥 Mine brukere</h2><div class="sub">Sjåfører og ansatte med egen innlogging</div></div>
+            <button class="btn btn-accent btn-sm" onclick="openModal('sub-user-modal')">+ Legg til</button>
+          </div>
+          <div class="card-body">
+            <div class="info-box">💡 Hver bruker logger inn med eget passord og ser kun det du deler med dem. Du som leder ser alt.</div>
+            <div id="sub-user-liste"></div>
+            <div class="empty" id="sub-user-empty"><div class="ei">👥</div>Ingen underbrukere ennå.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kontoinformasjon -->
+      <div class="card">
+        <div class="card-head"><h2>ℹ️ Kontoinformasjon</h2></div>
+        <div class="card-body">
+          <div class="settings-section">
+            <div style="font-size:0.8rem;line-height:1.8;color:var(--muted);">
+              <div>Brukernavn: <strong style="color:white;" id="info-brukernavn">–</strong></div>
+              <div>Rolle: <strong style="color:white;" id="info-rolle">–</strong></div>
+              <div>Innlogget som: <strong style="color:white;" id="info-navn">–</strong></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3 style="font-size:0.78rem;color:var(--muted);font-weight:700;">🔒 Personvern</h3>
+            <div style="font-size:0.76rem;color:var(--muted);line-height:1.7;">
+              Dataene dine lagres lokalt i nettleseren på denne enheten og er kun tilgjengelig for deg.
+              Sneglefrakt-administrator kan ikke se dine operasjonelle data (turer, kunder, sjåfører).
+              Administrator har kun tilgang til brukernavn, rolle og fakturastatus.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- NY TUR -->
+<div class="modal-overlay" id="tur-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><h3>🚛 Registrer tur</h3><button class="modal-close" onclick="closeModal('tur-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Dato</label><input type="date" id="t-dato"></div>
+        <div class="form-group"><label>Sjåfør</label><select id="t-sjafor"><option value="">Velg sjåfør</option></select></div>
+        <div class="form-group"><label>Kunde</label><select id="t-kunde" onchange="onKundeValgt()"><option value="">Velg kunde</option></select></div>
+        <div class="form-group"><label>Fra</label><input type="text" id="t-fra" placeholder="Oslo Havn"></div>
+        <div class="form-group"><label>Til</label><input type="text" id="t-til" placeholder="Drammen"></div>
+        <div class="form-group"><label>Kilometer</label><input type="number" id="t-km" placeholder="0" oninput="oppdaterPreview()"></div>
+        <div class="form-group"><label>Timer kjørt</label><input type="number" id="t-timer" placeholder="0" step="0.5" oninput="oppdaterPreview()"></div>
+        <div class="form-group"><label>Last / oppdrag</label><input type="text" id="t-last" placeholder="Container, stykkgods..."></div>
+      </div>
+      <div class="pris-preview-boks" id="pris-boks"><div id="pris-boks-tekst"></div><div class="pris-preview-sum"><span style="font-size:0.78rem;color:var(--muted);">Beregnet beløp</span><span class="pris-preview-kr" id="pris-preview">0 kr</span></div></div>
+      <div class="form-group full" style="margin-top:6px;"><label>Merknad</label><textarea id="t-merknad" rows="2"></textarea></div>
+      <div class="btn-row"><button class="btn btn-accent btn-full" onclick="lagreTur()">Lagre tur</button><button class="btn btn-ghost btn-full" onclick="closeModal('tur-modal')">Avbryt</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- NY KUNDE -->
+<div class="modal-overlay" id="kunde-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><h3>🏢 Legg til kunde</h3><button class="modal-close" onclick="closeModal('kunde-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Firmanavn</label><input type="text" id="k-navn" placeholder="Hansen Transport AS"></div>
+        <div class="form-group"><label>Kontaktperson</label><input type="text" id="k-kontakt"></div>
+        <div class="form-group"><label>Telefon</label><input type="tel" id="k-tlf"></div>
+        <div class="form-group full"><label>E-post</label><input type="email" id="k-epost"></div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px;">Prismodell</div>
+      <div class="pm-grid">
+        <div class="pm-btn tur active" id="pm-tur" onclick="velgPM('tur')"><div class="pm-icon">🚛</div><div class="pm-name">Turpris</div><div class="pm-desc">Fast per tur</div></div>
+        <div class="pm-btn time" id="pm-time" onclick="velgPM('time')"><div class="pm-icon">⏱️</div><div class="pm-name">Timepris</div><div class="pm-desc">Per time</div></div>
+        <div class="pm-btn fast" id="pm-fast" onclick="velgPM('fast')"><div class="pm-icon">📋</div><div class="pm-name">Fastpris</div><div class="pm-desc">Per mnd</div></div>
+      </div>
+      <div class="pris-section show" id="pris-tur"><div class="form-group full"><label>Pris per tur (kr ekskl. MVA)</label><input type="number" id="k-turpris" placeholder="850"></div></div>
+      <div class="pris-section" id="pris-time"><div class="form-group full"><label>Timepris (kr/t ekskl. MVA)</label><input type="number" id="k-timepris" placeholder="650"></div></div>
+      <div class="pris-section" id="pris-fast"><div class="form-group full"><label>Fast månedspris (kr ekskl. MVA)</label><input type="number" id="k-fastpris" placeholder="15000"></div></div>
+      <div class="form-group full" style="margin-top:8px;"><label>Merknad</label><input type="text" id="k-merknad"></div>
+      <div class="btn-row"><button class="btn btn-accent btn-full" onclick="lagreKunde()">Lagre kunde</button><button class="btn btn-ghost btn-full" onclick="closeModal('kunde-modal')">Avbryt</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- NY SJÅFØR -->
+<div class="modal-overlay" id="sjafor-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><h3>👤 Legg til sjåfør</h3><button class="modal-close" onclick="closeModal('sjafor-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Fornavn</label><input type="text" id="s-fornavn"></div>
+        <div class="form-group"><label>Etternavn</label><input type="text" id="s-etternavn"></div>
+        <div class="form-group"><label>Telefon</label><input type="tel" id="s-tlf"></div>
+        <div class="form-group"><label>Bil / regnr</label><input type="text" id="s-bil"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-accent btn-full" onclick="lagreSjafor()">Legg til</button><button class="btn btn-ghost btn-full" onclick="closeModal('sjafor-modal')">Avbryt</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- NYTT OPPDRAG -->
+<div class="modal-overlay" id="oppdrag-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><h3>📅 Planlegg oppdrag</h3><button class="modal-close" onclick="closeModal('oppdrag-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Tittel</label><input type="text" id="op-tittel" placeholder="Containerkjøring Oslo Havn"></div>
+        <div class="form-group"><label>Dato</label><input type="date" id="op-dato"></div>
+        <div class="form-group"><label>Sjåfør</label><select id="op-sjafor"><option value="">Velg sjåfør</option></select></div>
+        <div class="form-group"><label>Starttid</label><input type="time" id="op-start" value="07:00"></div>
+        <div class="form-group"><label>Slutttid</label><input type="time" id="op-slutt" value="15:00"></div>
+        <div class="form-group"><label>Type</label><select id="op-type"><option value="tur">🚛 Kjøreoppdrag</option><option value="oppdrag">🏗️ Spesialoppdrag</option><option value="ledig">✅ Ledig/disponibel</option></select></div>
+        <div class="form-group"><label>Kunde</label><select id="op-kunde"><option value="">Ingen</option></select></div>
+        <div class="form-group full"><label>Merknad</label><input type="text" id="op-merknad"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-accent btn-full" onclick="lagreOppdrag()">Lagre</button><button class="btn btn-ghost btn-full" onclick="closeModal('oppdrag-modal')">Avbryt</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- NY BRUKER (admin) -->
+<div class="modal-overlay" id="bruker-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><h3>➕ Legg til bruker/kunde</h3><button class="modal-close" onclick="closeModal('bruker-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="info-box">Kunden logger inn med dette brukernavnet og passordet. Data lagres separat per bruker — ingen deling.</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Firmanavn / kundenavn</label><input type="text" id="b-navn" placeholder="Hansen Transport AS"></div>
+        <div class="form-group"><label>Brukernavn</label><input type="text" id="b-user" placeholder="hansen" autocapitalize="none"></div>
+        <div class="form-group"><label>Passord</label><input type="password" id="b-pass" placeholder="velg passord"></div>
+        <div class="form-group full"><label>Notat (valgfritt)</label><input type="text" id="b-notat" placeholder="eks: startet jan 2026, 1000 kr/mnd"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-accent btn-full" onclick="lagreBruker()">Opprett bruker</button><button class="btn btn-ghost btn-full" onclick="closeModal('bruker-modal')">Avbryt</button></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PAUSE BANNER -->
+<div class="pause-banner" id="pause-banner" style="display:none;">
+  <div class="pause-box">
+    <div class="pause-icon">⏸️</div>
+    <div class="pause-tittel">Konto midlertidig satt på pause</div>
+    <div class="pause-tekst">Din konto er satt på pause på grunn av utestående betaling. Data er trygt lagret og tilgang gjenopprettes umiddelbart ved betaling.</div>
+    <div id="pause-belop-vis" class="pause-belop"></div>
+    <div class="pause-tekst" style="font-size:0.75rem;">Kontakt oss for å betale og gjenopprette tilgang:</div>
+    <div style="margin-top:8px;">
+      <a href="mailto:hei@sneglefrakt.no" style="color:var(--blue);font-size:0.85rem;font-weight:700;">hei@sneglefrakt.no</a>
+    </div>
+    <div class="epost-kort" style="margin-top:16px;text-align:left;">
+      <div class="epost-kort-tittel">📧 Få betalingsinformasjon på e-post</div>
+      <p>Valgfritt — send deg en e-post med kontonummer og betalingsinformasjon.</p>
+      <div class="epost-input-row">
+        <input type="email" id="pause-epost-input" placeholder="din@epost.no">
+        <button class="btn btn-accent btn-xs" onclick="sendBetalingsinfo()">Send</button>
+      </div>
+      <div class="epost-status" id="pause-epost-status"></div>
+    </div>
+    <div style="font-size:0.65rem;color:#2a3a4a;margin-top:16px;">Data slettes automatisk 60 dager etter pausedato dersom betaling ikke mottas.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// BRUKERE & AUTH
+// ══════════════════════════════════════════
+
+// Standard admin — ENDRE DETTE PASSORDET FØR DU DELER FILEN
+const ADMIN_DEFAULT = { user: 'admin', pass: 'sneglefrakt2026', rolle: 'admin', navn: 'Administrator' };
+
+function hentBrukere() {
+  try { return JSON.parse(localStorage.getItem('ff_brukere')) || [ADMIN_DEFAULT]; }
+  catch(e) { return [ADMIN_DEFAULT]; }
+}
+function lagreBrukereLS(b) { localStorage.setItem('ff_brukere', JSON.stringify(b)); }
+
+let innloggetBruker = null;
+
+function loggInn() {
+  const user = document.getElementById('l-user').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const brukere = hentBrukere();
+  const funnet = brukere.find(b => b.user === user && b.pass === pass);
+  if (!funnet) {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('l-pass').value = '';
+    return;
+  }
+  innloggetBruker = funnet;
+  sessionStorage.setItem('ff_session', JSON.stringify(funnet));
+  startApp();
+}
+
+function loggUt() {
+  sessionStorage.removeItem('ff_session');
+  innloggetBruker = null;
+  turer=[]; kunder=[]; sjaforer=[]; oppdrag=[];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-display').textContent = innloggetBruker.navn || innloggetBruker.user;
+
+  // Vis admin-tab kun for admin
+  document.getElementById('admin-tab-btn').style.display =
+    innloggetBruker.rolle === 'admin' ? 'flex' : 'none';
+  // Sub-brukere ser kun oversikt, kjørebok og planlegger
+  if (innloggetBruker.rolle === 'sub') {
+    document.querySelectorAll('.tabnav button').forEach((btn, i) => {
+      // Vis kun oversikt(0), kjørebok(1), planlegger(2)
+      if (i > 2) btn.style.display = 'none';
+    });
+  }
+  document.getElementById('fak-admin-tab-btn').style.display =
+    innloggetBruker.rolle === 'admin' ? 'flex' : 'none';
+
+  // Last data for denne brukeren
+  LS.load();
+  document.getElementById('fak-mnd').value = new Date().toISOString().slice(0, 7);
+  document.getElementById('fak-admin-mnd').value = new Date().toISOString().slice(0, 7);
+  render();
+  sjekkOmPauset();
+  renderFakturaInnboks();
+  renderInnstillinger();
+}
+
+// Sjekk om allerede innlogget (session)
+(function() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('ff_session'));
+    if (s && s.user) {
+      innloggetBruker = s;
+      startApp();
+    }
+  } catch(e) {}
+})();
+
+// Enter-tast på login
+document.getElementById('l-pass').addEventListener('keydown', e => { if(e.key==='Enter') loggInn(); });
+document.getElementById('l-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('l-pass').focus(); });
+
+// ══════════════════════════════════════════
+// LOCALSTORAGE — data per bruker
+// ══════════════════════════════════════════
+const LS = {
+  key(k) { return `ff_${innloggetBruker?.user}_${k}`; },
+  save() {
+    if(!innloggetBruker) return;
+    try {
+      localStorage.setItem(this.key('turer'),   JSON.stringify(turer));
+      localStorage.setItem(this.key('kunder'),  JSON.stringify(kunder));
+      localStorage.setItem(this.key('sjaforer'),JSON.stringify(sjaforer));
+      localStorage.setItem(this.key('oppdrag'), JSON.stringify(oppdrag));
+    } catch(e) { console.warn('Lagring feilet:', e); }
+  },
+  load() {
+    if(!innloggetBruker) return;
+    try {
+      turer    = JSON.parse(localStorage.getItem(this.key('turer')))    || [];
+      kunder   = JSON.parse(localStorage.getItem(this.key('kunder')))   || [];
+      sjaforer = JSON.parse(localStorage.getItem(this.key('sjaforer'))) || [];
+      oppdrag  = JSON.parse(localStorage.getItem(this.key('oppdrag')))  || [];
+    } catch(e) { turer=[]; kunder=[]; sjaforer=[]; oppdrag=[]; }
+  }
+};
+
+// ══════════════════════════════════════════
+// ADMIN FUNKSJONER
+// ══════════════════════════════════════════
+function lagreBruker() {
+  const navn = document.getElementById('b-navn').value.trim();
+  const user = document.getElementById('b-user').value.trim().toLowerCase();
+  const pass = document.getElementById('b-pass').value;
+  const notat = document.getElementById('b-notat').value.trim();
+  if(!navn||!user||!pass) { toast('Fyll inn navn, brukernavn og passord.'); return; }
+  const brukere = hentBrukere();
+  if(brukere.find(b=>b.user===user)) { toast('Brukernavnet er allerede i bruk.'); return; }
+  brukere.push({ user, pass, navn, rolle:'kunde', notat, opprettet: new Date().toLocaleDateString('no-NO') });
+  lagreBrukereLS(brukere);
+  ['b-navn','b-user','b-pass','b-notat'].forEach(id=>document.getElementById(id).value='');
+  closeModal('bruker-modal');
+  toast(`✅ Bruker opprettet: ${user}`);
+  renderAdminTab();
+}
+
+function slettBruker(user) {
+  if(user==='admin') { toast('Kan ikke slette admin.'); return; }
+  if(!confirm(`Slette bruker "${user}"? All data for denne brukeren slettes også!`)) return;
+  const brukere = hentBrukere().filter(b=>b.user!==user);
+  lagreBrukereLS(brukere);
+  // Slett all data for brukeren
+  ['turer','kunder','sjaforer','oppdrag'].forEach(k => localStorage.removeItem(`ff_${user}_${k}`));
+  toast(`Bruker ${user} slettet`);
+  renderAdminTab();
+}
+
+function endreAdminPass() {
+  const p1 = document.getElementById('ny-adminpass').value;
+  const p2 = document.getElementById('ny-adminpass2').value;
+  if(!p1) { toast('Skriv inn nytt passord.'); return; }
+  if(p1!==p2) { toast('Passordene er ikke like.'); return; }
+  const brukere = hentBrukere();
+  const idx = brukere.findIndex(b=>b.user==='admin');
+  if(idx>=0) brukere[idx].pass=p1; else brukere.push({...ADMIN_DEFAULT, pass:p1});
+  lagreBrukereLS(brukere);
+  document.getElementById('ny-adminpass').value='';
+  document.getElementById('ny-adminpass2').value='';
+  toast('✅ Adminpassord oppdatert!');
+}
+
+function renderAdminTab() {
+  const el = document.getElementById('bruker-liste');
+  const brukere = hentBrukere();
+  el.innerHTML = brukere.map(b => `
+    <div class="user-row">
+      <div class="user-row-info">
+        <div class="user-row-name">${b.navn || b.user} ${b.rolle==='admin'?'<span class="badge yellow">Admin</span>':''}</div>
+        <div class="user-row-detail">Brukernavn: <strong style="color:white;">${b.user}</strong>${b.notat?' · '+b.notat:''}${b.opprettet?' · Opprettet '+b.opprettet:''}</div>
+      </div>
+      ${b.rolle!=='admin' && !pauset ? `<button class="btn btn-ghost btn-xs" onclick="resetPassord('${b.user}')">🔑 Reset</button>` : ''}
+        ${b.rolle!=='admin' ? `<button class="btn btn-danger btn-xs" onclick="slettBruker('${b.user}')">Slett</button>` : ''}
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let turer=[],kunder=[],sjaforer=[],oppdrag=[];
+let aktivPM='tur', planOffset=0;
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function fmt(n){return Math.round(n||0).toLocaleString('no-NO');}
+function fmtKr(n){return fmt(n)+' kr';}
+function datoNorsk(d){if(!d)return'';const[y,m,day]=d.split('-');return`${day}.${m}.${y}`;}
+function idag(){return new Date().toISOString().split('T')[0];}
+function denneMnd(){return new Date().toISOString().slice(0,7);}
+function init2(navn){return navn.split(' ').map(n=>n[0]||'').join('').slice(0,2).toUpperCase();}
+
+function showTab(t,btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tabnav button').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(t==='planlegger') renderPlanlegger();
+  if(t==='faktura'){oppdaterFakSel();renderFaktura();}
+  if(t==='admin') renderAdminTab();
+  if(t==='fakadmin'){renderFakAdmin();}
+  if(t==='innstillinger'){renderInnstillinger();}
+  render();
+}
+
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='tur-modal'){document.getElementById('t-dato').value=idag();oppdaterSel();}
+  if(id==='oppdrag-modal'){
+    document.getElementById('op-dato').value=idag();
+    document.getElementById('op-sjafor').innerHTML='<option value="">Velg sjåfør</option>'+sjaforer.map(s=>`<option value="${s.id}">${s.navn}</option>`).join('');
+    document.getElementById('op-kunde').innerHTML='<option value="">Ingen</option>'+kunder.map(k=>`<option value="${k.id}">${k.navn}</option>`).join('');
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function oppdaterSel(){
+  document.getElementById('t-sjafor').innerHTML='<option value="">Velg sjåfør</option>'+sjaforer.map(s=>`<option value="${s.id}">${s.navn}</option>`).join('');
+  document.getElementById('t-kunde').innerHTML='<option value="">Velg kunde</option>'+kunder.map(k=>`<option value="${k.id}">${k.navn}</option>`).join('');
+}
+function oppdaterFakSel(){
+  document.getElementById('fak-kunde').innerHTML='<option value="">Velg kunde</option>'+kunder.map(k=>`<option value="${k.id}">${k.navn}</option>`).join('');
+  if(!document.getElementById('fak-mnd').value)document.getElementById('fak-mnd').value=denneMnd();
+}
+
+function beregnBelop(tur,kunde){
+  if(!kunde)return 0;
+  if(kunde.pm==='tur')return kunde.turpris||0;
+  if(kunde.pm==='time')return(tur.timer||0)*(kunde.timepris||0);
+  return 0;
+}
+function prisLabel(k){
+  if(!k)return'–';
+  if(k.pm==='tur')return`Turpris · ${fmtKr(k.turpris)}`;
+  if(k.pm==='time')return`Timepris · ${fmtKr(k.timepris)}/t`;
+  if(k.pm==='fast')return`Fastpris · ${fmtKr(k.fastpris)}/mnd`;
+}
+function prisBadge(pm){
+  if(pm==='tur')return'<span class="pristype tur">Turpris</span>';
+  if(pm==='time')return'<span class="pristype time">Timepris</span>';
+  if(pm==='fast')return'<span class="pristype fast">Fastpris</span>';
+  return'–';
+}
+function onKundeValgt(){
+  const k=kunder.find(x=>x.id===document.getElementById('t-kunde').value);
+  const boks=document.getElementById('pris-boks');
+  const tekst=document.getElementById('pris-boks-tekst');
+  if(!k){boks.style.display='none';return;}
+  boks.style.display='block';
+  if(k.pm==='tur')tekst.innerHTML=`${prisBadge('tur')} Fast <strong style="color:white">${fmtKr(k.turpris)}</strong> per tur.`;
+  if(k.pm==='time')tekst.innerHTML=`${prisBadge('time')} <strong style="color:white">${fmtKr(k.timepris)}/time</strong> — fyll inn timer.`;
+  if(k.pm==='fast')tekst.innerHTML=`${prisBadge('fast')} Fast <strong style="color:white">${fmtKr(k.fastpris)}/mnd</strong>.`;
+  oppdaterPreview();
+}
+function oppdaterPreview(){
+  const k=kunder.find(x=>x.id===document.getElementById('t-kunde').value);
+  if(!k)return;
+  const timer=parseFloat(document.getElementById('t-timer').value)||0;
+  const b=beregnBelop({timer},k);
+  document.getElementById('pris-preview').textContent=k.pm==='fast'?`(inngår i ${fmtKr(k.fastpris)}/mnd)`:fmtKr(b);
+}
+
+function lagreTur(){
+  const dato=document.getElementById('t-dato').value;
+  const sjaforId=document.getElementById('t-sjafor').value;
+  const fra=document.getElementById('t-fra').value.trim();
+  const til=document.getElementById('t-til').value.trim();
+  if(!dato||!sjaforId||!fra||!til){toast('Fyll inn dato, sjåfør, fra og til.');return;}
+  const s=sjaforer.find(x=>x.id===sjaforId);
+  const k=kunder.find(x=>x.id===document.getElementById('t-kunde').value);
+  const timer=parseFloat(document.getElementById('t-timer').value)||0;
+  const km=parseFloat(document.getElementById('t-km').value)||0;
+  const b=beregnBelop({timer},k);
+  turer.unshift({id:Date.now().toString(),dato,sjaforId,sjaforNavn:s?.navn||'',kundeId:k?.id||'',kundeNavn:k?.navn||'Ingen',pm:k?.pm||'–',belop:b,fra,til,km,timer,last:document.getElementById('t-last').value.trim(),merknad:document.getElementById('t-merknad').value.trim()});
+  ['t-fra','t-til','t-km','t-timer','t-last','t-merknad'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('t-sjafor').value='';document.getElementById('t-kunde').value='';
+  document.getElementById('pris-boks').style.display='none';
+  LS.save();closeModal('tur-modal');toast('✅ Tur registrert — '+fmtKr(b));render();
+}
+
+function velgPM(pm){
+  aktivPM=pm;
+  ['tur','time','fast'].forEach(p=>{
+    document.getElementById('pm-'+p).className=`pm-btn ${p}${pm===p?' active':''}`;
+    const s=document.getElementById('pris-'+p);if(s){pm===p?s.classList.add('show'):s.classList.remove('show');}
+  });
+}
+
+function lagreKunde(){
+  const navn=document.getElementById('k-navn').value.trim();
+  if(!navn){toast('Fyll inn firmanavn.');return;}
+  kunder.push({id:Date.now().toString(),navn,pm:aktivPM,kontakt:document.getElementById('k-kontakt').value.trim(),tlf:document.getElementById('k-tlf').value.trim(),epost:document.getElementById('k-epost').value.trim(),merknad:document.getElementById('k-merknad').value.trim(),turpris:parseFloat(document.getElementById('k-turpris').value)||0,timepris:parseFloat(document.getElementById('k-timepris').value)||0,fastpris:parseFloat(document.getElementById('k-fastpris').value)||0});
+  ['k-navn','k-kontakt','k-tlf','k-epost','k-merknad','k-turpris','k-timepris','k-fastpris'].forEach(id=>document.getElementById(id).value='');
+  velgPM('tur');LS.save();closeModal('kunde-modal');toast('✅ Kunde lagt til: '+navn);render();
+}
+
+function lagreSjafor(){
+  const fn=document.getElementById('s-fornavn').value.trim();
+  if(!fn){toast('Fyll inn fornavn.');return;}
+  sjaforer.push({id:Date.now().toString(),navn:`${fn} ${document.getElementById('s-etternavn').value.trim()}`.trim(),tlf:document.getElementById('s-tlf').value.trim(),bil:document.getElementById('s-bil').value.trim()});
+  ['s-fornavn','s-etternavn','s-tlf','s-bil'].forEach(id=>document.getElementById(id).value='');
+  LS.save();closeModal('sjafor-modal');toast('✅ Sjåfør lagt til!');render();
+}
+
+function slettTur(id){if(!confirm('Slette turen?'))return;turer=turer.filter(t=>t.id!==id);LS.save();toast('Slettet');render();}
+function slettKunde(id){if(!confirm('Slette kunde?'))return;kunder=kunder.filter(k=>k.id!==id);LS.save();toast('Slettet');render();}
+function slettSjafor(id){if(!confirm('Slette sjåfør?'))return;sjaforer=sjaforer.filter(s=>s.id!==id);LS.save();toast('Slettet');render();}
+
+function render(){
+  if(!innloggetBruker)return;
+  renderKPI();renderOversikt();renderKjorebok();renderKunder();renderSjaforer();
+}
+
+function renderKPI(){
+  const mnd=denneMnd(),idagStr=idag();
+  const mt=turer.filter(t=>t.dato&&t.dato.startsWith(mnd));
+  const turInnt=mt.filter(t=>t.pm!=='fast').reduce((s,t)=>s+(t.belop||0),0);
+  const fastInnt=kunder.filter(k=>k.pm==='fast').reduce((s,k)=>s+(k.fastpris||0),0);
+  document.getElementById('k-idag').textContent=turer.filter(t=>t.dato===idagStr).length;
+  document.getElementById('k-inntekt').textContent=fmtKr(turInnt+fastInnt);
+  document.getElementById('k-km').textContent=fmt(mt.reduce((s,t)=>s+(t.km||0),0))+' km';
+  document.getElementById('k-kunder').textContent=kunder.length;
+}
+
+function renderOversikt(){
+  const tbody=document.getElementById('ov-tbody'),empty=document.getElementById('ov-empty');
+  tbody.innerHTML=turer.slice(0,7).map(t=>`<tr><td>${datoNorsk(t.dato)}</td><td><strong>${t.sjaforNavn}</strong></td><td class="hide-sm">${t.fra} → ${t.til}</td><td class="hide-sm">${fmt(t.km)} km</td><td>${prisBadge(t.pm)}</td><td class="kr-green">${t.pm==='fast'?'(fast)':fmtKr(t.belop)}</td></tr>`).join('');
+  empty.style.display=turer.length===0?'block':'none';
+  const ib=document.getElementById('ink-tbody'),ie=document.getElementById('ink-empty');
+  const mnd=denneMnd();
+  const rows=kunder.map(k=>{const kt=turer.filter(t=>t.kundeId===k.id&&t.dato&&t.dato.startsWith(mnd));const innt=k.pm==='fast'?k.fastpris:kt.reduce((s,t)=>s+(t.belop||0),0);return{k,innt};}).filter(x=>x.innt>0);
+  ib.innerHTML=rows.map(({k,innt})=>`<tr><td><strong>${k.navn}</strong></td><td>${prisBadge(k.pm)}</td><td class="kr-green">${fmtKr(innt)}</td></tr>`).join('');
+  ie.style.display=rows.length===0?'block':'none';
+  const ovS=document.getElementById('ov-sjaforer');
+  if(sjaforer.length===0){ovS.innerHTML='<div class="empty"><div class="ei">👤</div>Legg til sjåfører.</div>';return;}
+  const idagStr=idag();
+  ovS.innerHTML=sjaforer.map(s=>{const harTur=turer.some(t=>t.sjaforId===s.id&&t.dato===idagStr);return`<div class="ledig-row"><div class="ledig-dot ${harTur?'opptatt':'ledig'}"></div><div class="avatar" style="width:30px;height:30px;font-size:0.65rem;">${init2(s.navn)}</div><div><div style="font-size:0.82rem;font-weight:700;">${s.navn}</div><div style="font-size:0.68rem;color:var(--muted);">${s.bil||''} · ${harTur?'Tur i dag':'Ledig'}</div></div></div>`;}).join('');
+}
+
+function renderKjorebok(){
+  const tbody=document.getElementById('kb-tbody'),empty=document.getElementById('kb-empty');
+  tbody.innerHTML=turer.map(t=>`<tr><td>${datoNorsk(t.dato)}</td><td><strong>${t.sjaforNavn}</strong></td><td class="hide-sm">${t.kundeNavn}</td><td class="hide-sm">${t.fra} → ${t.til}</td><td class="hide-md">${fmt(t.km)}</td><td class="hide-md">${t.timer||0}</td><td>${prisBadge(t.pm)}</td><td class="kr-green">${t.pm==='fast'?'(fast)':fmtKr(t.belop)}</td><td><button class="btn btn-danger btn-xs" onclick="slettTur('${t.id}')">Slett</button></td></tr>`).join('');
+  empty.style.display=turer.length===0?'block':'none';
+}
+
+function renderKunder(){
+  const liste=document.getElementById('kunde-liste'),empty=document.getElementById('kunde-empty');
+  empty.style.display=kunder.length===0?'block':'none';
+  liste.innerHTML=kunder.map(k=>`<div class="list-item"><div class="list-item-info"><div class="li-name">${k.navn}</div><div class="li-detail">${k.kontakt||''} ${k.tlf?'· '+k.tlf:''}</div><div style="margin-top:5px;">${prisBadge(k.pm)} <span style="font-size:0.7rem;color:var(--muted);margin-left:6px;">${prisLabel(k)}</span></div></div><button class="btn btn-danger btn-xs" onclick="slettKunde('${k.id}')">Slett</button></div>`).join('');
+}
+
+function renderSjaforer(){
+  const liste=document.getElementById('sjafor-liste'),empty=document.getElementById('sjafor-empty');
+  empty.style.display=sjaforer.length===0?'block':'none';
+  liste.innerHTML=sjaforer.map(s=>{const ant=turer.filter(t=>t.sjaforId===s.id).length;const km=turer.filter(t=>t.sjaforId===s.id).reduce((sum,t)=>sum+(t.km||0),0);return`<div class="list-item"><div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;"><div class="avatar" style="width:40px;height:40px;font-size:0.8rem;">${init2(s.navn)}</div><div class="list-item-info"><div class="li-name">${s.navn}</div><div class="li-detail">${s.bil||''} ${s.tlf?'· '+s.tlf:''}</div><div class="li-detail">📋 ${ant} turer · 🛣️ ${fmt(km)} km</div></div></div><button class="btn btn-danger btn-xs" onclick="slettSjafor('${s.id}')">Slett</button></div>`;}).join('');
+}
+
+// PLANLEGGER
+function getUkeDager(offset){const n=new Date(),dag=n.getDay();const man=new Date(n);man.setDate(n.getDate()-(dag===0?6:dag-1)+offset*7);man.setHours(0,0,0,0);return Array.from({length:7},(_,i)=>{const d=new Date(man);d.setDate(man.getDate()+i);return d;});}
+function dKey(d){return d.toISOString().split('T')[0];}
+function ukeNr(d){const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));dt.setUTCDate(dt.getUTCDate()+4-(dt.getUTCDay()||7));const ys=new Date(Date.UTC(dt.getUTCFullYear(),0,1));return Math.ceil((((dt-ys)/86400000)+1)/7);}
+function forrigeUke(){planOffset--;renderPlanlegger();}
+function nesteUke(){planOffset++;renderPlanlegger();}
+function dennUken(){planOffset=0;renderPlanlegger();}
+
+function openPlanModal(dato,sjaforId){
+  openModal('oppdrag-modal');
+  if(dato)document.getElementById('op-dato').value=dato;
+  document.getElementById('op-sjafor').innerHTML='<option value="">Velg sjåfør</option>'+sjaforer.map(s=>`<option value="${s.id}"${s.id===sjaforId?' selected':''}>${s.navn}</option>`).join('');
+  document.getElementById('op-kunde').innerHTML='<option value="">Ingen</option>'+kunder.map(k=>`<option value="${k.id}">${k.navn}</option>`).join('');
+}
+
+function lagreOppdrag(){
+  const tittel=document.getElementById('op-tittel').value.trim();
+  const dato=document.getElementById('op-dato').value;
+  const sjaforId=document.getElementById('op-sjafor').value;
+  if(!tittel||!dato||!sjaforId){toast('Fyll inn tittel, dato og sjåfør.');return;}
+  oppdrag.push({id:Date.now().toString(),tittel,dato,sjaforId,kundeId:document.getElementById('op-kunde').value,start:document.getElementById('op-start').value||'07:00',slutt:document.getElementById('op-slutt').value||'15:00',type:document.getElementById('op-type').value,merknad:document.getElementById('op-merknad').value.trim()});
+  ['op-tittel','op-merknad'].forEach(id=>document.getElementById(id).value='');
+  LS.save();closeModal('oppdrag-modal');toast('✅ Oppdrag planlagt!');renderPlanlegger();
+}
+function slettOppdrag(id){oppdrag=oppdrag.filter(o=>o.id!==id);LS.save();toast('Oppdrag slettet');renderPlanlegger();}
+
+function renderPlanlegger(){
+  const dager=getUkeDager(planOffset);
+  const idagStr=idag();
+  const dagNavn=['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+  const fra=dager[0].toLocaleDateString('no-NO',{day:'numeric',month:'short'});
+  const til=dager[6].toLocaleDateString('no-NO',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('plan-tittel').textContent=`Uke ${ukeNr(dager[0])} — ${fra} til ${til}`;
+  document.getElementById('plan-uke-nr').textContent=`Uke ${ukeNr(dager[0])}`;
+
+  // Desktop
+  let dH=`<div style="display:grid;grid-template-columns:80px repeat(7,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;">`;
+  dH+='<div class="plan-corner"></div>';
+  dager.forEach((d,i)=>{const er=dKey(d)===idagStr;dH+=`<div class="plan-day-hdr${er?' today':''}"><div class="dag">${dagNavn[i]}</div><div class="dato">${d.getDate()}</div></div>`;});
+  if(sjaforer.length===0){dH+=`<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);font-size:0.82rem;background:var(--card);">Legg til sjåfører for å se planleggeren.</div>`;}
+  else{sjaforer.forEach(s=>{dH+=`<div class="plan-sjafor-col"><div class="avatar" style="width:26px;height:26px;font-size:0.62rem;margin-bottom:4px;">${init2(s.navn)}</div><div class="sn">${s.navn.split(' ')[0]}</div><div class="sb">${s.bil||''}</div></div>`;dager.forEach(d=>{const key=dKey(d),er=key===idagStr;const do_=oppdrag.filter(o=>o.dato===key&&o.sjaforId===s.id);const dt=turer.filter(t=>t.dato===key&&t.sjaforId===s.id);dH+=`<div class="plan-cell${er?' today-col':''}" onclick="openPlanModal('${key}','${s.id}')">`;dt.forEach(t=>{dH+=`<div class="plan-evt tur"><div class="pe-t">🚛 ${t.fra}→${t.til}</div><div class="pe-s">${t.kundeNavn}</div></div>`;});do_.forEach(o=>{dH+=`<div class="plan-evt ${o.type}" onclick="event.stopPropagation();slettOppdrag('${o.id}')"><div class="pe-t">${o.tittel}</div><div class="pe-s">${o.start}–${o.slutt}</div></div>`;});dH+=`<button class="plan-add-cell" onclick="event.stopPropagation();openPlanModal('${key}','${s.id}')">+ legg til</button></div>`;});});}
+  dH+='</div>';
+  document.getElementById('desk-plan').innerHTML=dH;
+
+  // Mobile
+  let mH='';
+  dager.forEach((d,i)=>{const key=dKey(d),er=key===idagStr;mH+=`<div class="plan-dag-kort"><div class="plan-dag-header${er?' today':''}"><div class="plan-dag-tittel${er?' today':''}">${dagNavn[i]} ${d.getDate()}. ${d.toLocaleDateString('no-NO',{month:'long'})}</div>${er?'<span class="badge blue">I dag</span>':''}</div><div class="plan-dag-body">`;
+  if(sjaforer.length===0){mH+=`<div style="color:var(--muted);font-size:0.8rem;">Legg til sjåfører.</div>`;}
+  else{sjaforer.forEach(s=>{const dt=turer.filter(t=>t.dato===key&&t.sjaforId===s.id);const do_=oppdrag.filter(o=>o.dato===key&&o.sjaforId===s.id);mH+=`<div class="plan-sjafor-rad"><div class="plan-sjafor-info"><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div class="avatar" style="width:24px;height:24px;font-size:0.58rem;">${init2(s.navn)}</div><div class="plan-sjafor-navn">${s.navn.split(' ')[0]}</div></div><div class="plan-sjafor-bil">${s.bil||''}</div></div><div class="plan-events-col">`;dt.forEach(t=>{mH+=`<div class="plan-evt-mob tur">🚛 ${t.fra} → ${t.til} · ${t.kundeNavn}</div>`;});do_.forEach(o=>{mH+=`<div class="plan-evt-mob ${o.type}">${o.tittel} · ${o.start}–${o.slutt}</div>`;});if(dt.length===0&&do_.length===0)mH+=`<div style="font-size:0.7rem;color:#2a3a4a;">Ledig</div>`;mH+=`<button class="plan-legg-til" onclick="openPlanModal('${key}','${s.id}')">+ legg til oppdrag</button></div></div>`;});}
+  mH+='</div></div>';});
+  document.getElementById('mob-plan').innerHTML=mH;
+
+  // Ledighetsoversikt
+  const lEl=document.getElementById('ledig-liste');
+  if(sjaforer.length===0){lEl.innerHTML='<div style="color:var(--muted);font-size:0.8rem;padding:8px 0;">Ingen sjåfører.</div>';return;}
+  lEl.innerHTML=sjaforer.map(s=>{const ant=dager.map(d=>dKey(d)).filter(key=>turer.some(t=>t.dato===key&&t.sjaforId===s.id)||oppdrag.some(o=>o.dato===key&&o.sjaforId===s.id&&o.type!=='ledig')).length;const st=ant===0?'ledig':ant>=5?'opptatt':'delvis';return`<div class="ledig-row"><div class="ledig-dot ${st}"></div><div class="avatar" style="width:28px;height:28px;font-size:0.62rem;">${init2(s.navn)}</div><div><div style="font-size:0.8rem;font-weight:700;">${s.navn}</div><div style="font-size:0.67rem;color:var(--muted);">${ant===0?'Ledig hele uken':ant>=5?`Opptatt ${ant}/7 dager`:`Opptatt ${ant}/7 dager`}</div></div></div>`;}).join('');
+
+  const ol=document.getElementById('opp-liste'),oe=document.getElementById('opp-empty');
+  const alle=[...oppdrag].sort((a,b)=>a.dato.localeCompare(b.dato));
+  oe.style.display=alle.length===0?'block':'none';
+  ol.innerHTML=alle.map(o=>{const s=sjaforer.find(x=>x.id===o.sjaforId);return`<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;"><div><div style="font-size:0.8rem;font-weight:700;">${o.tittel}</div><div style="font-size:0.67rem;color:var(--muted);">${datoNorsk(o.dato)} · ${o.start}–${o.slutt} · ${s?.navn||'–'}</div></div><button class="btn btn-danger btn-xs" onclick="slettOppdrag('${o.id}')">Slett</button></div>`;}).join('');
+}
+
+// FAKTURA
+function renderFaktura(){
+  oppdaterFakSel();
+  const kId=document.getElementById('fak-kunde')?.value;
+  const mnd=document.getElementById('fak-mnd')?.value;
+  const el=document.getElementById('fak-innhold');
+  if(!el)return;
+  if(!kId||!mnd){el.innerHTML='<div class="empty"><div class="ei">🧾</div>Velg kunde og måned.</div>';return;}
+  const k=kunder.find(x=>x.id===kId);if(!k)return;
+  const kt=turer.filter(t=>t.kundeId===kId&&t.dato&&t.dato.startsWith(mnd));
+  const[år,mndNr]=mnd.split('-');
+  const mndNavn=['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'][parseInt(mndNr)-1];
+  let totEks=0,linjer='';
+  if(k.pm==='fast'){totEks=k.fastpris;linjer=`<tr><td>Fast månedspris – ${mndNavn} ${år}</td><td>1</td><td>${fmtKr(k.fastpris)}</td><td>${fmtKr(k.fastpris)}</td></tr>`;if(kt.length>0)linjer+=`<tr><td colspan="4" style="color:#6b7a8d;font-size:0.7rem;">Inkluderte turer: ${kt.map(t=>t.fra+'→'+t.til).join(', ')}</td></tr>`;}
+  else{kt.forEach(t=>{let enhet='',ant=0,ep=0,sum=0;if(k.pm==='tur'){enhet='tur';ant=1;ep=k.turpris;sum=k.turpris;}if(k.pm==='time'){enhet='t';ant=t.timer||0;ep=k.timepris;sum=ant*k.timepris;}totEks+=sum;linjer+=`<tr><td>${datoNorsk(t.dato)} – ${t.fra}→${t.til}${t.last?' ('+t.last+')':''}</td><td>${ant} ${enhet}</td><td>${fmtKr(ep)}</td><td>${fmtKr(sum)}</td></tr>`;});if(kt.length===0)linjer=`<tr><td colspan="4" style="color:#6b7a8d;">Ingen turer denne perioden.</td></tr>`;}
+  const mva=Math.round(totEks*0.25),tot=totEks+mva;
+  const fnr=`FF-${mnd.replace('-','')}-${kId.slice(-3)}`;
+  const forfall=new Date(parseInt(år),parseInt(mndNr),14).toLocaleDateString('no-NO');
+  el.innerHTML=`<div class="faktura"><div class="faktura-header"><div class="fak-logo"><div><span class="fleet">Roni</span><span class="flow">x</span></div><div class="tag">Transport · Admin</div></div><div class="faktura-nr"><div class="nr">Faktura ${fnr}</div><div class="dato">Periode: ${mndNavn} ${år}</div><div class="dato">Forfall: ${forfall}</div></div></div><div class="faktura-parter"><div><h4>Fra</h4><p><strong>Sneglefrakt</strong><br>[Ditt navn]<br>[Adresse]<br>[Org.nr]</p></div><div><h4>Til</h4><p><strong>${k.navn}</strong><br>${k.kontakt||'–'}<br>${k.epost||'–'}</p></div></div><table><thead><tr><th>Beskrivelse</th><th>Antall</th><th>Enhetspris</th><th>Sum eks. MVA</th></tr></thead><tbody>${linjer}</tbody></table><div class="fak-sum-row"><span>Sum ekskl. MVA</span><span>${fmtKr(totEks)}</span></div><div class="fak-sum-row"><span>MVA (25%)</span><span>${fmtKr(mva)}</span></div><div class="fak-sum-row total"><span>Totalt å betale</span><span>${fmtKr(tot)}</span></div><div class="fak-footer">Sneglefrakt · hei@sneglefrakt.no · Kontonr: [ditt kontonr] · KID: ${fnr}</div></div>`;
+}
+
+function exportExcel(){
+  if(turer.length===0){toast('Ingen turer å eksportere.');return;}
+  const data=[['Dato','Sjåfør','Kunde','Fra','Til','Km','Timer','Last','Prismodell','Beløp eks MVA','MVA','Inkl MVA'],...turer.map(t=>[datoNorsk(t.dato),t.sjaforNavn,t.kundeNavn,t.fra,t.til,t.km,t.timer,t.last,t.pm,t.belop,Math.round(t.belop*0.25),Math.round(t.belop*1.25)])];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'Kjørebok');XLSX.writeFile(wb,'sneglefrakt-kjorebok.xlsx');toast('📥 Eksportert!');
+}
+function exportFaktura(){
+  const kId=document.getElementById('fak-kunde').value,mnd=document.getElementById('fak-mnd').value;
+  if(!kId||!mnd){toast('Velg kunde og måned.');return;}
+  const k=kunder.find(x=>x.id===kId);const kt=turer.filter(t=>t.kundeId===kId&&t.dato&&t.dato.startsWith(mnd));
+  const totEks=k.pm==='fast'?k.fastpris:kt.reduce((s,t)=>s+(t.belop||0),0);
+  const data=[['Fakturagrunnlag',''],['Kunde',k.navn],['Periode',mnd],[''],['Dato','Fra','Til','Km','Timer','Beløp eks MVA'],...kt.map(t=>[datoNorsk(t.dato),t.fra,t.til,t.km,t.timer,t.belop]),[''],['Sum eks MVA',totEks],['MVA 25%',Math.round(totEks*0.25)],['TOTALT',Math.round(totEks*1.25)]];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'Faktura');XLSX.writeFile(wb,`faktura-${k.navn.replace(/\s/g,'-')}-${mnd}.xlsx`);toast('📥 Faktura eksportert!');
+}
+
+
+// ══════════════════════════════════════════
+// FAKTURA ADMIN
+// ══════════════════════════════════════════
+
+// Faktura-historikk lagres globalt (kun admin ser dette)
+function hentFakHist() {
+  try { return JSON.parse(localStorage.getItem('ff_admin_fakhist')) || []; }
+  catch(e) { return []; }
+}
+function lagreFakHist(h) { localStorage.setItem('ff_admin_fakhist', JSON.stringify(h)); }
+
+function hentFakStatus(kundeId, mnd) {
+  const hist = hentFakHist();
+  return hist.find(h => h.kundeId === kundeId && h.mnd === mnd) || null;
+}
+
+function beregnKundeInntekt(kundeId, mnd, kunderListe, turerListe) {
+  const k = kunderListe.find(x => x.id === kundeId);
+  if (!k) return 0;
+  if (k.pm === 'fast') return k.fastpris || 0;
+  const kt = turerListe.filter(t => t.kundeId === kundeId && t.dato && t.dato.startsWith(mnd));
+  return kt.reduce((s, t) => s + (t.belop || 0), 0);
+}
+
+function oppdaterFakStatus(kundeId, nyStatus, mnd, belop, kundeNavn) {
+  const hist = hentFakHist();
+  const idx = hist.findIndex(h => h.kundeId === kundeId && h.mnd === mnd);
+  const now = new Date().toLocaleDateString('no-NO');
+  const entry = {
+    kundeId, mnd, kundeNavn, belop,
+    status: nyStatus,
+    sendtDato: nyStatus === 'sendt' || nyStatus === 'betalt' ? (idx >= 0 && hist[idx].sendtDato ? hist[idx].sendtDato : now) : null,
+    betaltDato: nyStatus === 'betalt' ? now : null,
+    oppdatert: now
+  };
+  if (idx >= 0) {
+    // Behold sendtDato hvis allerede satt
+    if (hist[idx].sendtDato && nyStatus !== 'ikke-sendt') entry.sendtDato = hist[idx].sendtDato;
+    if (hist[idx].betaltDato && nyStatus === 'betalt') entry.betaltDato = hist[idx].betaltDato || now;
+    hist[idx] = entry;
+  } else {
+    hist.push(entry);
+  }
+  lagreFakHist(hist);
+  renderFakAdmin();
+  toast(`✅ ${kundeNavn} → ${statusLabel(nyStatus)}`);
+}
+
+function statusLabel(s) {
+  if(s==='ikke-sendt') return 'Ikke sendt';
+  if(s==='sendt') return 'Sendt / Ubetalt';
+  if(s==='betalt') return 'Betalt';
+  if(s==='forfalt') return 'Forfalt';
+  return s;
+}
+
+function erForfalt(entry) {
+  if (!entry || entry.status !== 'sendt') return false;
+  // Forfall er 14 dager etter fakturadato (første i måneden)
+  const [år, mndNr] = entry.mnd.split('-');
+  const forfall = new Date(parseInt(år), parseInt(mndNr) - 1 + 1, 14); // 14. neste måned
+  return new Date() > forfall;
+}
+
+function merkAlleSendt() {
+  const mnd = document.getElementById('fak-admin-mnd').value;
+  if (!mnd) { toast('Velg måned først.'); return; }
+  // Hent alle kunder fra alle brukere
+  const alleKunder = hentAlleKundeData();
+  let antall = 0;
+  alleKunder.forEach(({k, turerForBruker, brukerNavn}) => {
+    const status = hentFakStatus(k.id + '_' + brukerNavn, mnd);
+    if (!status || status.status === 'ikke-sendt') {
+      const belop = beregnKundeInntektDirekte(k, turerForBruker, mnd);
+      if (belop > 0) {
+        oppdaterFakStatusDirekte(k.id + '_' + brukerNavn, 'sendt', mnd, belop, k.navn + ' (' + brukerNavn + ')');
+        antall++;
+      }
+    }
+  });
+  toast(`📤 ${antall} fakturaer merket som sendt`);
+  renderFakAdmin();
+}
+
+function beregnKundeInntektDirekte(k, turer, mnd) {
+  if (k.pm === 'fast') return k.fastpris || 0;
+  return turer.filter(t => t.kundeId === k.id && t.dato && t.dato.startsWith(mnd))
+              .reduce((s, t) => s + (t.belop || 0), 0);
+}
+
+function oppdaterFakStatusDirekte(key, nyStatus, mnd, belop, navn) {
+  const hist = hentFakHist();
+  const idx = hist.findIndex(h => h.kundeId === key && h.mnd === mnd);
+  const now = new Date().toLocaleDateString('no-NO');
+  const entry = { kundeId: key, mnd, kundeNavn: navn, belop, status: nyStatus,
+    sendtDato: nyStatus !== 'ikke-sendt' ? now : null,
+    betaltDato: nyStatus === 'betalt' ? now : null, oppdatert: now };
+  if (idx >= 0) hist[idx] = entry; else hist.push(entry);
+  lagreFakHist(hist);
+}
+
+function hentAlleKundeData() {
+  const brukere = hentBrukere().filter(b => b.rolle !== 'admin');
+  const result = [];
+  brukere.forEach(b => {
+    try {
+      const kunderForBruker = JSON.parse(localStorage.getItem(`ff_${b.user}_kunder`)) || [];
+      const turerForBruker  = JSON.parse(localStorage.getItem(`ff_${b.user}_turer`))  || [];
+      kunderForBruker.forEach(k => result.push({ k, turerForBruker, brukerNavn: b.user, brukerNavn2: b.navn || b.user }));
+    } catch(e) {}
+  });
+  return result;
+}
+
+function renderFakAdmin() {
+  const mnd = document.getElementById('fak-admin-mnd')?.value;
+  if (!mnd) return;
+  
+  const [år, mndNr] = mnd.split('-');
+  const mndNavn = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'][parseInt(mndNr)-1];
+  document.getElementById('fak-admin-mnd-label').textContent = mndNavn + ' ' + år;
+
+  const alleKunder = hentAlleKundeData();
+  const el = document.getElementById('fak-admin-kunder');
+  const empty = document.getElementById('fak-admin-empty');
+
+  if (alleKunder.length === 0) {
+    el.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('fak-admin-stats').innerHTML = '<div style="color:var(--muted);font-size:0.82rem;">Ingen kunder registrert.</div>';
+    return;
+  }
+  empty.style.display = 'none';
+
+  let totalFakturert = 0, totalBetalt = 0, totalUbetalt = 0, antallForfalt = 0;
+
+  el.innerHTML = alleKunder.map(({k, turerForBruker, brukerNavn, brukerNavn2}) => {
+    const key = k.id + '_' + brukerNavn;
+    let entry = hentFakStatus(key, mnd);
+    const belop = beregnKundeInntektDirekte(k, turerForBruker, mnd);
+    const antTurer = turerForBruker.filter(t => t.kundeId === k.id && t.dato && t.dato.startsWith(mnd)).length;
+    
+    // Auto-merk forfalt
+    if (entry && erForfalt(entry) && entry.status === 'sendt') {
+      entry.status = 'forfalt';
+      oppdaterFakStatusDirekte(key, 'forfalt', mnd, belop, k.navn + ' (' + brukerNavn + ')');
+    }
+
+    const status = entry?.status || 'ikke-sendt';
+    
+    // Statistikk
+    if (belop > 0) {
+      totalFakturert += belop;
+      if (status === 'betalt') totalBetalt += belop;
+      else if (status === 'sendt' || status === 'forfalt') totalUbetalt += belop;
+      if (status === 'forfalt') antallForfalt++;
+    }
+
+    const prisInfo = k.pm === 'tur' ? `${antTurer} turer × ${fmt(k.turpris)} kr`
+                   : k.pm === 'time' ? `${antTurer} turer (timepris)`
+                   : 'Fast månedspris';
+
+    const belopFarge = status === 'betalt' ? 'green' : status === 'forfalt' ? 'red' : status === 'sendt' ? 'yellow' : 'muted';
+
+    return `<div class="fak-kort ${status}">
+      <div class="status-pill ${status}">${statusLabel(status)}</div>
+      <div class="fak-kunde-navn">${k.navn}</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">${brukerNavn2}</div>
+      <div class="fak-belop ${belopFarge}">${belop > 0 ? fmtKr(belop * 1.25) + ' inkl MVA' : '0 kr'}</div>
+      <div class="fak-meta">
+        Eks MVA: ${fmtKr(belop)}<br>
+        ${prisInfo}<br>
+        ${entry?.sendtDato ? '📤 Sendt: ' + entry.sendtDato : ''}<br>
+        ${entry?.betaltDato ? '✅ Betalt: ' + entry.betaltDato : ''}
+      </div>
+      <div class="fak-actions">
+        ${status !== 'sendt' && status !== 'betalt' && belop > 0 ?
+          `<button class="btn btn-ghost btn-xs" onclick="sendFakturaInnboks('${brukerNavn}','${k.id}','${mnd}',${belop},'${k.navn}')">📬 Send faktura</button>` : ''}
+        ${status !== 'betalt' && belop > 0 ?
+          `<button class="btn btn-accent btn-xs" onclick="oppdaterFakStatus('${key}','betalt','${mnd}',${belop},'${k.navn} (${brukerNavn})')">✅ Betalt</button>` : ''}
+        ${status === 'betalt' ?
+          `<button class="btn btn-ghost btn-xs" onclick="oppdaterFakStatus('${key}','sendt','${mnd}',${belop},'${k.navn} (${brukerNavn})')">↩ Angre</button>` : ''}
+        ${status === 'forfalt' || (status === 'sendt' && belop > 0) ?
+          `<button class="btn btn-danger btn-xs" onclick="togglePauseBruker('${brukerNavn}')">⏸️ Sett på pause</button>` : ''}
+        ${erBrukerPauset('${brukerNavn}') ?
+          `<button class="btn btn-accent btn-xs" onclick="gjenopprettBruker('${brukerNavn}')">▶️ Gjenopprett</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Statistikk
+  document.getElementById('fak-admin-stats').innerHTML = `
+    <div class="stat-row"><span class="stat-label">Total å fakturere</span><span class="stat-val" style="color:var(--blue)">${fmtKr(totalFakturert * 1.25)}</span></div>
+    <div class="stat-row"><span class="stat-label">Betalt inn</span><span class="stat-val" style="color:var(--green)">${fmtKr(totalBetalt * 1.25)}</span></div>
+    <div class="stat-row"><span class="stat-label">Utestående</span><span class="stat-val" style="color:var(--yellow)">${fmtKr(totalUbetalt * 1.25)}</span></div>
+    ${antallForfalt > 0 ? `<div class="stat-row"><span class="stat-label">Forfalt</span><span class="stat-val" style="color:var(--red)">${antallForfalt} kunder</span></div>` : ''}
+  `;
+
+  // Historikk
+  renderFakHistorikk();
+}
+
+function renderFakHistorikk() {
+  const hist = hentFakHist().sort((a,b) => b.mnd.localeCompare(a.mnd));
+  const tbody = document.getElementById('fak-hist-tbody');
+  const empty = document.getElementById('fak-hist-empty');
+  empty.style.display = hist.length === 0 ? 'block' : 'none';
+  tbody.innerHTML = hist.map(h => {
+    const [år, mndNr] = h.mnd.split('-');
+    const mndNavn = ['Jan','Feb','Mar','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Des'][parseInt(mndNr)-1];
+    return `<tr>
+      <td><strong>${h.kundeNavn}</strong></td>
+      <td>${mndNavn} ${år}</td>
+      <td class="kr-green">${fmtKr((h.belop||0)*1.25)}</td>
+      <td><span class="status-pill ${h.status}" style="margin:0;">${statusLabel(h.status)}</span></td>
+      <td style="font-size:0.7rem;color:var(--muted);">${h.sendtDato||'–'}</td>
+      <td style="font-size:0.7rem;color:var(--muted);">${h.betaltDato||'–'}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="slettFakHistEntry('${h.kundeId}','${h.mnd}')">Slett</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function slettFakHistEntry(kundeId, mnd) {
+  if (!confirm('Slette denne oppføringen?')) return;
+  const hist = hentFakHist().filter(h => !(h.kundeId === kundeId && h.mnd === mnd));
+  lagreFakHist(hist);
+  renderFakAdmin();
+  toast('Slettet');
+}
+
+function sendPåminnelse(kundeNavn) {
+  toast(`📧 Husk å sende påminnelse til ${kundeNavn}`);
+}
+
+
+// ══════════════════════════════════════════
+// FAKTURA TIL KUNDE & BRUKER PAUSE
+// ══════════════════════════════════════════
+
+function hentFakturaer(brukerNavn) {
+  try { return JSON.parse(localStorage.getItem('ff_fak_innboks_' + brukerNavn)) || []; }
+  catch(e) { return []; }
+}
+function lagreFakturaer(brukerNavn, faks) {
+  localStorage.setItem('ff_fak_innboks_' + brukerNavn, JSON.stringify(faks));
+}
+
+function sendFakturaInnboks(brukerNavn, kundeId, mnd, belop, kundeNavn) {
+  const faks = hentFakturaer(brukerNavn);
+  const [år, mndNr] = mnd.split('-');
+  const mndNavn = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'][parseInt(mndNr)-1];
+  const eksisterer = faks.find(f => f.mnd === mnd && f.kundeId === kundeId);
+  if (eksisterer) { toast('Faktura allerede sendt for denne måneden.'); return; }
+  const faktura = {
+    id: Date.now().toString(),
+    kundeId, kundeNavn, mnd, belop,
+    belopInklMva: Math.round(belop * 1.25),
+    mndNavn, år,
+    sendtDato: new Date().toLocaleDateString('no-NO'),
+    status: 'ny',
+    forfallDato: new Date(parseInt(år), parseInt(mndNr), 14).toLocaleDateString('no-NO')
+  };
+  faks.unshift(faktura);
+  lagreFakturaer(brukerNavn, faks);
+  // Merk som sendt i historikk
+  const key = kundeId + '_' + brukerNavn;
+  oppdaterFakStatus(key, 'sendt', mnd, belop, kundeNavn + ' (' + brukerNavn + ')');
+  toast('📬 Faktura sendt til ' + kundeNavn + '!');
+  renderFakAdmin();
+}
+
+function renderFakturaInnboks() {
+  if (!innloggetBruker || innloggetBruker.rolle === 'admin') return;
+  const faks = hentFakturaer(innloggetBruker.user);
+  const wrap = document.getElementById('faktura-inbox-wrap');
+  const liste = document.getElementById('faktura-inbox-liste');
+  const badge = document.getElementById('ny-fak-badge');
+  if (faks.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const nye = faks.filter(f => f.status === 'ny').length;
+  badge.style.display = nye > 0 ? 'inline-flex' : 'none';
+  badge.textContent = nye + ' ny';
+  liste.innerHTML = faks.map(f => `
+    <div class="faktura-inbox-item ${f.status === 'ny' ? 'ny' : ''}">
+      <div class="fi-info">
+        <div class="fi-tittel">📄 Faktura ${f.mndNavn} ${f.år} ${f.status === 'ny' ? '<span class="badge blue">Ny</span>' : ''}</div>
+        <div class="fi-sub">Sendt: ${f.sendtDato} · Forfall: ${f.forfallDato}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="fi-belop">${fmt(f.belopInklMva)} kr</div>
+        <button class="btn btn-ghost btn-xs" onclick="visFakturaDetalj('${f.id}')">Se faktura</button>
+        <button class="btn btn-ghost btn-xs" onclick="toggleEpostSkjema('${f.id}')">📧 E-post</button>
+        ${f.status === 'ny' ? `<button class="btn btn-accent btn-xs" onclick="merkFakturaLest('${f.id}')">✓ Mottatt</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function merkFakturaLest(id) {
+  const faks = hentFakturaer(innloggetBruker.user);
+  const idx = faks.findIndex(f => f.id === id);
+  if (idx >= 0) faks[idx].status = 'lest';
+  lagreFakturaer(innloggetBruker.user, faks);
+  renderFakturaInnboks();
+  toast('✅ Faktura merket som mottatt');
+}
+
+function visFakturaDetalj(id) {
+  const faks = hentFakturaer(innloggetBruker.user);
+  const f = faks.find(x => x.id === id);
+  if (!f) return;
+  // Sett fakturagrunnlag til riktig kunde og måned og bytt til faktura-tab
+  document.getElementById('fak-mnd').value = f.mnd;
+  const sel = document.getElementById('fak-kunde');
+  // Finn kunden
+  const k = kunder.find(x => x.id === f.kundeId);
+  if (k) {
+    sel.value = k.id;
+    renderFaktura();
+    showTab('faktura', document.querySelector('.tabnav button:nth-child(6)'));
+  }
+}
+
+// ── PAUSE BRUKER ──
+function hentPauseInfo(brukerNavn) {
+  try { return JSON.parse(localStorage.getItem('ff_pause_' + brukerNavn)); }
+  catch(e) { return null; }
+}
+function erBrukerPauset(brukerNavn) {
+  return !!hentPauseInfo(brukerNavn);
+}
+
+function togglePauseBruker(brukerNavn) {
+  if (erBrukerPauset(brukerNavn)) {
+    gjenopprettBruker(brukerNavn);
+  } else {
+    if (!confirm(`Sette ${brukerNavn} på pause? De vil ikke kunne logge inn før du gjenoppretter.`)) return;
+    // Finn utestående beløp
+    const hist = hentFakHist();
+    const utestående = hist.filter(h => h.kundeId.endsWith('_' + brukerNavn) && h.status !== 'betalt');
+    const totBelop = utestående.reduce((s,h) => s + (h.belop||0), 0);
+    const pauseInfo = {
+      pausetDato: new Date().toLocaleDateString('no-NO'),
+      slettDato: new Date(Date.now() + 60*24*60*60*1000).toLocaleDateString('no-NO'),
+      utestående: Math.round(totBelop * 1.25)
+    };
+    localStorage.setItem('ff_pause_' + brukerNavn, JSON.stringify(pauseInfo));
+    toast(`⏸️ ${brukerNavn} satt på pause. Data beholdes i 60 dager.`);
+    renderFakAdmin();
+    renderAdminTab();
+  }
+}
+
+function gjenopprettBruker(brukerNavn) {
+  localStorage.removeItem('ff_pause_' + brukerNavn);
+  toast(`▶️ ${brukerNavn} gjenopprettet — full tilgang!`);
+  renderFakAdmin();
+  renderAdminTab();
+}
+
+function sjekkOmPauset() {
+  if (!innloggetBruker || innloggetBruker.rolle === 'admin') return;
+  const pause = hentPauseInfo(innloggetBruker.user);
+  if (pause) {
+    document.getElementById('pause-belop-vis').textContent = pause.utestående > 0 ? 'Utestående: ' + fmt(pause.utestående) + ' kr' : '';
+    document.getElementById('pause-banner').style.display = 'flex';
+  } else {
+    document.getElementById('pause-banner').style.display = 'none';
+  }
+}
+
+
+// ══════════════════════════════════════════
+// EMAILJS — E-POST FAKTURA
+// ══════════════════════════════════════════
+
+// EmailJS konfig — bytt ut med dine egne verdier fra emailjs.com
+const EJS = {
+  publicKey:  'DIN_PUBLIC_KEY',   // Fra EmailJS → Account → Public Key
+  serviceId:  'DIN_SERVICE_ID',   // Fra EmailJS → Email Services
+  templateFaktura: 'DIN_TEMPLATE_FAKTURA_ID',
+  templatePause:   'DIN_TEMPLATE_PAUSE_ID',
+};
+
+let ejsInit = false;
+function initEJS() {
+  if (ejsInit) return;
+  try { emailjs.init({ publicKey: EJS.publicKey }); ejsInit = true; } catch(e) {}
+}
+
+function toggleEpostSkjema(id) {
+  const el = document.getElementById('epost-skjema-' + id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function visEpostStatus(elId, type, tekst) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.className = 'epost-status ' + type;
+  el.textContent = tekst;
+  el.style.display = 'block';
+  if (type === 'sendt') setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+async function sendFakturaEpost(fakId, belopInklMva, periode, forfall) {
+  const epostEl = document.getElementById('epost-input-' + fakId);
+  const statusId = 'epost-status-' + fakId;
+  const epost = epostEl?.value?.trim();
+  if (!epost || !epost.includes('@')) {
+    visEpostStatus(statusId, 'feil', '⚠️ Fyll inn gyldig e-postadresse');
+    return;
+  }
+
+  const kundeNavn = innloggetBruker?.navn || innloggetBruker?.user || 'Kunde';
+  visEpostStatus(statusId, 'sender', '⏳ Sender...');
+
+  // Prøv EmailJS — fallback til mailto om ikke konfigurert
+  if (EJS.publicKey !== 'DIN_PUBLIC_KEY') {
+    try {
+      initEJS();
+      await emailjs.send(EJS.serviceId, EJS.templateFaktura, {
+        to_email:   epost,
+        kunde_navn: kundeNavn,
+        periode:    periode,
+        belop:      belopInklMva.toLocaleString('no-NO') + ' kr inkl. MVA',
+        forfall:    forfall,
+        fra_navn:   'Sneglefrakt',
+        fra_epost:  'hei@sneglefrakt.no',
+        kontonr:    '[Ditt kontonummer]',
+      });
+      visEpostStatus(statusId, 'sendt', '✅ Faktura sendt til ' + epost);
+      epostEl.value = '';
+      return;
+    } catch(err) {
+      visEpostStatus(statusId, 'feil', '❌ Sending feilet. Prøv igjen.');
+      return;
+    }
+  }
+
+  // Fallback: mailto-lenke (åpner e-postklient)
+  const subject = encodeURIComponent('Faktura Sneglefrakt – ' + periode);
+  const body = encodeURIComponent(
+    'Hei ' + kundeNavn + ',\n\n' +
+    'Vedlagt er din faktura fra Sneglefrakt.\n\n' +
+    'Periode: ' + periode + '\n' +
+    'Beløp: ' + belopInklMva.toLocaleString('no-NO') + ' kr inkl. MVA\n' +
+    'Forfall: ' + forfall + '\n\n' +
+    'Kontonummer: [Ditt kontonummer]\n\n' +
+    'Med vennlig hilsen\nSneglefrakt\nhei@sneglefrakt.no'
+  );
+  window.open('mailto:' + epost + '?subject=' + subject + '&body=' + body);
+  visEpostStatus(statusId, 'sendt', '✅ E-postklient åpnet for ' + epost);
+  epostEl.value = '';
+}
+
+async function sendBetalingsinfo() {
+  const epostEl = document.getElementById('pause-epost-input');
+  const statusId = 'pause-epost-status';
+  const epost = epostEl?.value?.trim();
+  if (!epost || !epost.includes('@')) {
+    visEpostStatus(statusId, 'feil', '⚠️ Fyll inn gyldig e-postadresse');
+    return;
+  }
+
+  const kundeNavn = innloggetBruker?.navn || innloggetBruker?.user || 'Kunde';
+  const pauseInfo = hentPauseInfo(innloggetBruker?.user);
+  visEpostStatus(statusId, 'sender', '⏳ Sender...');
+
+  if (EJS.publicKey !== 'DIN_PUBLIC_KEY') {
+    try {
+      initEJS();
+      await emailjs.send(EJS.serviceId, EJS.templatePause, {
+        to_email:    epost,
+        kunde_navn:  kundeNavn,
+        belop:       pauseInfo?.utestående ? pauseInfo.utestående.toLocaleString('no-NO') + ' kr' : 'Se faktura',
+        kontonr:     '[Ditt kontonummer]',
+        slett_dato:  pauseInfo?.slettDato || '–',
+        fra_epost:   'hei@sneglefrakt.no',
+      });
+      visEpostStatus(statusId, 'sendt', '✅ Betalingsinformasjon sendt til ' + epost);
+      epostEl.value = '';
+      return;
+    } catch(err) {
+      visEpostStatus(statusId, 'feil', '❌ Sending feilet.');
+      return;
+    }
+  }
+
+  // Fallback mailto
+  const subject = encodeURIComponent('Betalingsinformasjon – Sneglefrakt');
+  const body = encodeURIComponent(
+    'Hei ' + kundeNavn + ',\n\n' +
+    'Her er betalingsinformasjon for ditt Sneglefrakt-abonnement.\n\n' +
+    'Utestående beløp: ' + (pauseInfo?.utestående ? pauseInfo.utestående.toLocaleString('no-NO') + ' kr' : 'Se faktura') + '\n' +
+    'Kontonummer: [Ditt kontonummer]\n' +
+    'Merk betaling: ' + (kundeNavn) + '\n\n' +
+    'Etter betaling gjenopprettes tilgangen umiddelbart.\n' +
+    'Data slettes automatisk: ' + (pauseInfo?.slettDato || '–') + '\n\n' +
+    'Spørsmål? Kontakt oss på hei@sneglefrakt.no\n\n' +
+    'Med vennlig hilsen\nSneglefrakt'
+  );
+  window.open('mailto:' + epost + '?subject=' + subject + '&body=' + body);
+  visEpostStatus(statusId, 'sendt', '✅ E-postklient åpnet for ' + epost);
+  epostEl.value = '';
+}
+
+
+// ══════════════════════════════════════════
+// ENDRE PASSORD (kunden selv)
+// ══════════════════════════════════════════
+function endreEgetPassord() {
+  const gammel  = document.getElementById('ep-gammel').value;
+  const ny      = document.getElementById('ep-ny').value;
+  const bekreft = document.getElementById('ep-bekreft').value;
+
+  if (!gammel || !ny || !bekreft) { toast('Fyll inn alle feltene.'); return; }
+  if (ny !== bekreft) { toast('De nye passordene er ikke like.'); return; }
+  if (ny.length < 6) { toast('Passordet må være minst 6 tegn.'); return; }
+
+  const brukere = hentBrukere();
+  const idx = brukere.findIndex(b => b.user === innloggetBruker.user);
+  if (idx < 0) { toast('Feil: bruker ikke funnet.'); return; }
+  if (brukere[idx].pass !== gammel) { toast('❌ Nåværende passord er feil.'); return; }
+
+  brukere[idx].pass = ny;
+  lagreBrukereLS(brukere);
+  innloggetBruker.pass = ny;
+  sessionStorage.setItem('ff_session', JSON.stringify(innloggetBruker));
+
+  ['ep-gammel','ep-ny','ep-bekreft'].forEach(id => document.getElementById(id).value = '');
+  toast('✅ Passord oppdatert!');
+}
+
+// ══════════════════════════════════════════
+// RESET PASSORD (admin — i admin-tab)
+// ══════════════════════════════════════════
+function resetPassord(brukerNavn) {
+  const nytt = prompt(`Nytt passord for "${brukerNavn}":`);
+  if (!nytt || nytt.length < 4) { toast('For kort passord — avbrutt.'); return; }
+  const brukere = hentBrukere();
+  const idx = brukere.findIndex(b => b.user === brukerNavn);
+  if (idx >= 0) {
+    brukere[idx].pass = nytt;
+    lagreBrukereLS(brukere);
+    toast(`✅ Passord for "${brukerNavn}" er tilbakestilt. Gi dem det nye passordet.`);
+    renderAdminTab();
+  }
+}
+
+// ══════════════════════════════════════════
+// UNDER-BRUKERE (nivå 2)
+// ══════════════════════════════════════════
+function hentSubUsers(hovedBruker) {
+  try { return JSON.parse(localStorage.getItem('ff_sub_' + hovedBruker)) || []; }
+  catch(e) { return []; }
+}
+function lagreSubUsers(hovedBruker, liste) {
+  localStorage.setItem('ff_sub_' + hovedBruker, JSON.stringify(liste));
+}
+
+function lagreSubUser() {
+  const navn  = document.getElementById('su-navn').value.trim();
+  const rolle = document.getElementById('su-rolle').value;
+  const user  = document.getElementById('su-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('su-pass').value;
+
+  if (!navn || !user || !pass) { toast('Fyll inn alle feltene.'); return; }
+  if (pass.length < 4) { toast('Passordet må være minst 4 tegn.'); return; }
+
+  // Finn hvem som er hovedkunde (nærmeste ikke-sub bruker)
+  const hovedBruker = innloggetBruker.parent || innloggetBruker.user;
+
+  const liste = hentSubUsers(hovedBruker);
+  if (liste.find(u => u.user === user)) { toast('Brukernavnet er allerede i bruk.'); return; }
+
+  liste.push({
+    id: Date.now().toString(),
+    navn, rolle, user, pass,
+    opprettet: new Date().toLocaleDateString('no-NO')
+  });
+  lagreSubUsers(hovedBruker, liste);
+
+  // Også registrer i global brukerliste så de kan logge inn
+  const brukere = hentBrukere();
+  brukere.push({
+    user, pass, navn, rolle: 'sub',
+    parent: hovedBruker,
+    notat: rolle === 'sjafor' ? 'Sjåfør' : 'Avdelingsleder',
+    opprettet: new Date().toLocaleDateString('no-NO')
+  });
+  lagreBrukereLS(brukere);
+
+  ['su-navn','su-user','su-pass'].forEach(id => document.getElementById(id).value = '');
+  closeModal('sub-user-modal');
+  toast('✅ ' + navn + ' lagt til!');
+  renderSubUsers();
+}
+
+function slettSubUser(subUser) {
+  if (!confirm('Slette bruker "' + subUser + '"?')) return;
+  const hovedBruker = innloggetBruker.parent || innloggetBruker.user;
+  const liste = hentSubUsers(hovedBruker).filter(u => u.user !== subUser);
+  lagreSubUsers(hovedBruker, liste);
+  // Fjern fra global liste
+  const brukere = hentBrukere().filter(b => b.user !== subUser);
+  lagreBrukereLS(brukere);
+  toast('Bruker slettet');
+  renderSubUsers();
+}
+
+function renderSubUsers() {
+  const wrap  = document.getElementById('sub-users-wrap');
+  const liste_el = document.getElementById('sub-user-liste');
+  const empty = document.getElementById('sub-user-empty');
+  if (!wrap) return;
+
+  // Vis kun for kunder (ikke admin, ikke sub)
+  if (innloggetBruker.rolle === 'admin' || innloggetBruker.rolle === 'sub') {
+    wrap.style.display = 'none'; return;
+  }
+  wrap.style.display = 'block';
+
+  const hovedBruker = innloggetBruker.user;
+  const liste = hentSubUsers(hovedBruker);
+  empty.style.display = liste.length === 0 ? 'block' : 'none';
+  liste_el.innerHTML = liste.map(u => `
+    <div class="sub-user-row">
+      <div class="sub-user-info">
+        <div class="sun">${u.navn} <span class="rolle-badge ${u.rolle}">${u.rolle === 'sjafor' ? '🚛 Sjåfør' : '👤 Avd.leder'}</span></div>
+        <div class="sur">Brukernavn: <strong style="color:white;">${u.user}</strong> · Opprettet ${u.opprettet}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="resetSubPassord('${u.user}')">🔑 Reset</button>
+        <button class="btn btn-danger btn-xs" onclick="slettSubUser('${u.user}')">Slett</button>
+      </div>
+    </div>`).join('');
+}
+
+function resetSubPassord(subUser) {
+  const nytt = prompt('Nytt passord for "' + subUser + '":');
+  if (!nytt || nytt.length < 4) { toast('For kort — avbrutt.'); return; }
+  const brukere = hentBrukere();
+  const idx = brukere.findIndex(b => b.user === subUser);
+  if (idx >= 0) { brukere[idx].pass = nytt; lagreBrukereLS(brukere); }
+  // Oppdater i sub-liste
+  const hoved = innloggetBruker.user;
+  const liste = hentSubUsers(hoved);
+  const sidx = liste.findIndex(u => u.user === subUser);
+  if (sidx >= 0) { liste[sidx].pass = nytt; lagreSubUsers(hoved, liste); }
+  toast('✅ Passord for ' + subUser + ' tilbakestilt');
+}
+
+// ── Render innstillinger-tab ──
+function renderInnstillinger() {
+  if (!innloggetBruker) return;
+  const ib = document.getElementById('info-brukernavn');
+  const ir = document.getElementById('info-rolle');
+  const in_ = document.getElementById('info-navn');
+  if (ib) ib.textContent = innloggetBruker.user;
+  if (ir) ir.textContent = innloggetBruker.rolle === 'admin' ? 'Administrator' :
+                            innloggetBruker.rolle === 'sub'   ? 'Underbruker' : 'Kunde';
+  if (in_) in_.textContent = innloggetBruker.navn || innloggetBruker.user;
+  renderSubUsers();
+}
+
+// PWA
+if('serviceWorker' in navigator){
+  const swCode=`const CACHE='ff-v1';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;const b=document.getElementById('pwa-banner');if(b)b.style.display='flex';});
+</script>
+
+<!-- PWA BANNER -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#0a1a0a;border-top:1px solid rgba(34,197,94,0.3);padding:12px 16px;z-index:1000;align-items:center;gap:12px;">
+  <div style="display:flex;align-items:center;gap:10px;flex:1;">
+    <div style="width:36px;height:36px;border-radius:9px;background:#16a34a;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <circle cx="28" cy="22" r="14" fill="none" stroke="white" stroke-width="2.5"/>
+      <circle cx="28" cy="22" r="8" fill="none" stroke="white" stroke-width="2" opacity="0.55"/>
+      <circle cx="28" cy="22" r="3" fill="white"/>
+      <path d="M14 28 Q10 32 8 35 Q14 39 22 37" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <line x1="16" y1="11" x2="14" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <line x1="21" y1="10" x2="21" y2="5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    </div>
+    <div><div style="font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:800;color:white;">Installer Sneglefrakt</div><div style="font-size:0.65rem;color:#6b7a8d;">Legg til på hjemskjerm</div></div>
+  </div>
+  <button onclick="if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('pwa-banner').style.display='none';}" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;">Installer</button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:none;border:none;color:#6b7a8d;cursor:pointer;font-size:1.1rem;padding:4px;">✕</button>
+</div>
+</body>
+</html>
